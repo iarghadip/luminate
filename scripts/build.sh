@@ -7,11 +7,11 @@ SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 FLAG_F=false
 
 for arg in "$@"; do
-    if [ "$arg" == "-f" ]; then
-        FLAG_F=true
-    elif [ "$arg" == "--full" ]; then
-        FLAG_F=true
-    fi
+    case "$arg" in
+        -f|--full)
+            FLAG_F=true
+            ;;
+    esac
 done
 
 function connected {
