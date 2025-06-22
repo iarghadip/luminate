@@ -76,13 +76,13 @@ String RTC::read(
             Wire.endTransmission();
             Wire.requestFrom(0x68, 7);
             if (Wire.available() < 7) continue;
-            byte sec   = _bcdToDec(Wire.read());
-            byte min   = _bcdToDec(Wire.read());
-            byte hour  = _bcdToDec(Wire.read());
+            byte sec = _bcdToDec(Wire.read());
+            byte min = _bcdToDec(Wire.read());
+            byte hour = _bcdToDec(Wire.read());
             Wire.read();
-            byte day   = _bcdToDec(Wire.read());
+            byte day = _bcdToDec(Wire.read());
             byte month = _bcdToDec(Wire.read() & 0x1F);
-            byte year  = _bcdToDec(Wire.read());
+            byte year = _bcdToDec(Wire.read());
             if (format == DATE_TIME || format == DATE_ONLY) {
                 String space = (format == DATE_TIME ? " " : "");
                 if (_cache.msDate && ((ms - _cache.msDate) <= 1000)) {
