@@ -46,17 +46,17 @@ done
 
 wait
 
-echo
-
-$PIO_HOME run --target buildfs --environment esp32dev
+echo; $PIO_HOME run --target buildfs --environment esp32dev
 
 if connected; then
-    $PIO_HOME run --target uploadfs --environment esp32dev
+    echo; $PIO_HOME run --target uploadfs --environment esp32dev
 fi
 
 if $FLAG_F; then
-    $PIO_HOME run --environment esp32dev
+    echo; $PIO_HOME run --environment esp32dev
     if connected; then
-        $PIO_HOME run --target upload --environment esp32dev
+        echo; $PIO_HOME run --target upload --environment esp32dev
     fi
 fi
+
+echo
