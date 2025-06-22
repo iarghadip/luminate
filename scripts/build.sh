@@ -4,6 +4,20 @@ ENV_FILE="platformio.ini"
 PIO_HOME=~/.platformio/penv/bin/platformio
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 
+FLAG_F=false
+
+for arg in "$@"; do
+    if [ "$arg" == "-f" ]; then
+        FLAG_F=true
+    elif [ "$arg" == "--full" ]; then
+        FLAG_F=true
+    fi
+done
+
+function connected {
+    $PIO_HOME device list | grep -q "/dev/cu.usb"
+}
+
 function minify {
     html-minifier \
         --collapse-whitespace \
@@ -36,6 +50,13 @@ echo
 
 $PIO_HOME run --target buildfs --environment esp32dev
 
-if $PIO_HOME device list | grep -q "/dev/cu.usb"; then
+if connected; then
     $PIO_HOME run --target uploadfs --environment esp32dev
+fi
+
+if $FLAG_F; then
+    $PIO_HOME run --environment esp32dev
+    if connected; then
+        $PIO_HOME run --target upload --environment esp32dev
+    fi
 fi
