@@ -253,6 +253,6 @@ void MCU::_startSetupInterfaceServer() {
     _server.begin();
     _isServerRunning = true;
     log("MCU::_startSetupInterfaceServer(): AP started with SSID.");
-    log("MCU::_startSetupInterfaceServer(): hotspotName: " + hotspotName);
+    log("MCU::_startSetupInterfaceServer(): name: " + name);
     log("MCU::_startSetupInterfaceServer(): DNS and server routes configured.");
 }
