@@ -9,17 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Initial release of the project
-- Single script for builds and uploads
+- Initial release of the project.
+- Single script for builds and uploads.
 
 ### Fixed
 
-- Dependency injection implemented
+- Dependency injection implemented.
 
 ### Changed
 
-- Minor environment variable changes
-- Minor app.cpp algorithm changes
-- Optimized HTML for better performance
+- Minor environment variable changes.
+- Minor app.cpp algorithm changes.
+- Optimized HTML for better performance.
 
 [v1.0.0]: https://github.com/iarghadip/luminate/compare/3ce85df...v1.0.0
