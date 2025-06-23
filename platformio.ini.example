@@ -23,7 +23,7 @@ lib_deps =
 build_flags =
 
     -DFIRMWARE_NAME="\"Luminate\""
-    -DFIRMWARE_VERSION="\"v1.1.0\""
+    -DFIRMWARE_VERSION="\"v1.0.0\""
 
     -DKEY_WIFI_SSID="\"wifi.ssid\""
     -DKEY_WIFI_PASSWORD="\"wifi.password\""
