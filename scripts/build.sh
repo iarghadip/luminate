@@ -15,7 +15,7 @@ for arg in "$@"; do
 done
 
 function connected {
-    $PIO_HOME device list | grep -q "/dev/cu.usb"
+    $PIO_HOME device list | grep -q "/dev/ttyUSB"
 }
 
 function minify {

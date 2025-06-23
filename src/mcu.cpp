@@ -152,7 +152,7 @@ void MCU::_setStandardRequestIntervalFactor(
 
 void MCU::_reConnect() {
     if (preferences.isKey(KEY_WIFI_SSID) && preferences.isKey(KEY_WIFI_PASSWORD)) {
-        log("_reConnect(): WiFi is connecting to " + preferences.getString(KEY_WIFI_SSID));
+        log("_reConnect(): WiFi is connecting to " + preferences.getString(KEY_WIFI_SSID) + ".");
         WiFi.begin(
             preferences.getString(KEY_WIFI_SSID),
             preferences.getString(KEY_WIFI_PASSWORD)
