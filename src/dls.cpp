@@ -44,7 +44,6 @@ float DLS::read(
             _mcu->log("DLS::read(): Wire response size invalid!", false);
         }
         _lastRead = current;
-        if (lux < 0) return minimumBrightness;
         return constrain(lux, minimumBrightness, 100.0f);
     }
     return 0.0f;
