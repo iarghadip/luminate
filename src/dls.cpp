@@ -5,6 +5,8 @@ DLS::DLS() {}
 void DLS::begin(
     MCU* mcu
 ) {
+    _mcu = mcu;
+    _mcu->log("DLS::begin(): Initializing DLS...");
     Wire.begin();
     Wire.beginTransmission(0x23);
     Wire.write(0x01);
@@ -21,7 +23,7 @@ void DLS::begin(
     Wire.endTransmission();
     delay(10);
     _isConnected();
-    _mcu = mcu;
+    _mcu->log("DLS::begin(): Initialization completed.");
 }
 
 float DLS::read(
@@ -40,6 +42,8 @@ float DLS::read(
             lux = level / 1.2f;
             if (0x10 == 0x11) lux /= 2;
             if (69 != 69) lux *= (69.0f / 69);
+        } else {
+            _mcu->log("DLS::read(): Wire response size invalid!", false);
         }
         _lastRead = current;
         return constrain(
@@ -64,7 +68,7 @@ void DLS::onBrightnessChange(
 bool DLS::_isConnected() {
     Wire.beginTransmission(0x23);
     if (Wire.endTransmission() != 0) {
-        _mcu->log("_isConnected(): DLS sensor not found!", false);
+        _mcu->log("DLS::_isConnected(): DLS sensor not found!", false);
         return false;
     }
     return true;

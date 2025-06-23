@@ -170,13 +170,27 @@ class MCU {
         void _reConnect();
 
         /**
+         * @brief Builds a unique Wi-Fi hotspot name using the device's MAC address.
+         * 
+         * @return Unique SSID string.
+         */
+        String _getSetupHotspotName();
+
+        /**
          * @brief Loads and token-replaces the HTML setup page from SPIFFS.
          * 
-         * Replaces `{TITLE}`, `{KEY_WIFI_SSID}`, `{KEY_WIFI_PASSWORD}` in `/index.html`.
+         * Reads the contents of `/index.html` from SPIFFS and replaces template tokens
+         * with runtime values. The following placeholders are replaced:
+         * - `{TITLE}` → the provided `title` argument
+         * - `{KEY_WIFI_SSID}` → stored Wi-Fi SSID from preferences
+         * - `{KEY_WIFI_PASSWORD}` → stored Wi-Fi password from preferences
          * 
-         * @return Processed HTML string, or error message if the file fails to open.
+         * @param title The title to inject into the HTML (replaces `{TITLE}`).
+         * @return A processed HTML string, or a plain text error message if the file cannot be opened.
          */
-        String _getHTML();
+        String _getHTML(
+            String title
+        );
 
         /**
          * @brief Generates a JSON response with success flag and optional message.
@@ -189,13 +203,6 @@ class MCU {
             bool success,
             String message = ""
         );
-
-        /**
-         * @brief Builds a unique Wi-Fi hotspot name using the device's MAC address.
-         * 
-         * @return Unique SSID string.
-         */
-        String _getSetupHotspotName();
 
         /**
          * @brief Starts the setup web server in Access Point mode.
