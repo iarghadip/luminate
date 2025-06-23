@@ -74,6 +74,7 @@ void setup() {
     _fan.begin(&_mcu);
     _led.begin(&_mcu);
     _rtc.begin(&_mcu);
+    _mcu.updateLogginTimestamp(_rtc.read());
     _mcu.log("setup(): Welcome to " + String(FIRMWARE_NAME) + " (v" + String(FIRMWARE_VERSION) + ").");
     _mcu.assign(1, updateWSL);
     _mcu.assign(1, updateLED);
