@@ -60,4 +60,4 @@ build_flags =
 
     -DI2C_FREQUENCY=400000
 
-    -DAPI_TIME_URL=
+    -DAPI_TIME_URL="\"\""
