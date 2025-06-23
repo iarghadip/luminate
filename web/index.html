@@ -201,6 +201,8 @@
         <script>
             document.addEventListener("DOMContentLoaded", () => {
                 let setMessageID = null;
+                const form = document.querySelector("form");
+                const submit = form.querySelector("button[type=submit]");
                 function setMessage(text, reset = true) {
                     const e = document.getElementById("message");
                     if (setMessageID !== null) {
@@ -237,8 +239,19 @@
                         password.length <= 63
                     );
                 }
-                const form = document.querySelector("form");
-                const submit = form.querySelector("button[type=submit]");
+                function createNestedSquares() {
+                    let current = document.createElement("div");
+                    current.className = "square black";
+                    document.querySelector(".container").appendChild(current);
+                    let isBlack = false;
+                    for (let i = 0; i < 30; i++) {
+                        const next = document.createElement("div");
+                        next.className = isBlack ? "square black" : "square";
+                        current.appendChild(next);
+                        current = next;
+                        isBlack = !isBlack;
+                    }
+                }
                 form.addEventListener("submit", e => {
                     e.preventDefault();
                     const ssid = form.querySelector("input[name='{KEY_WIFI_SSID}']").value;
@@ -278,6 +291,7 @@
                         });
                     }, 1000);
                 });
+                createNestedSquares();
             });
         </script>
     </head>
@@ -328,64 +342,6 @@
             </form>
             <div class="footer">
                 <div class="container">
-                    <div class="square black">
-                        <div class="square">
-                            <div class="square black">
-                                <div class="square">
-                                    <div class="square black">
-                                        <div class="square">
-                                            <div class="square black">
-                                                <div class="square">
-                                                    <div class="square black">
-                                                        <div class="square">
-                                                            <div class="square black">
-                                                                <div class="square">
-                                                                    <div class="square black">
-                                                                        <div class="square">
-                                                                            <div class="square black">
-                                                                                <div class="square">
-                                                                                    <div class="square black">
-                                                                                        <div class="square">
-                                                                                            <div class="square black">
-                                                                                                <div class="square">
-                                                                                                    <div class="square black">
-                                                                                                        <div class="square">
-                                                                                                            <div class="square black">
-                                                                                                                <div class="square">
-                                                                                                                    <div class="square black">
-                                                                                                                        <div class="square">
-                                                                                                                            <div class="square black">
-                                                                                                                                <div class="square">
-                                                                                                                                    <div class="square black">
-                                                                                                                                    </div>
-                                                                                                                                </div>
-                                                                                                                            </div>
-                                                                                                                        </div>
-                                                                                                                    </div>
-                                                                                                                </div>
-                                                                                                            </div>
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
