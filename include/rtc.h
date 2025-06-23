@@ -1,149 +1,149 @@
 #ifndef rtc_h
 #define rtc_h
 
-// Libraries from system framework
-#include <Arduino.h>
-#include <Wire.h>
+// Libraries from module wrappers
+#include <mcu.h>
 
 /**
- * @brief The RTC class represents a DS3231 RTC-based rtc device.
+ * @class RTC
+ * @brief Provides access to a DS3231 real-time clock with time, date, and temperature handling.
  * 
- * Provides functionalities to calibrate time, retrieve formatted date/time strings,
- * and handle temperature change notifications.
+ * The RTC class supports setting and retrieving the current date/time, reading temperature,
+ * and notifying the user on temperature change. It also supports formatted output and caching.
  */
 class RTC {
     public:
         /**
-         * @brief Enumeration defining the types of formats supported by RTC.
+         * @brief Enumeration for date/time formatting options.
          */
         enum Format {
-            DATE_TIME, ///< The output will have both date and time.
-            DATE_ONLY, ///< The output will have only date.
-            TIME_ONLY ///< The output will have only time.
+            DATE_TIME, ///< Output includes both date and time.
+            DATE_ONLY, ///< Output includes only date.
+            TIME_ONLY  ///< Output includes only time.
         };
 
         /**
-         * @brief Default constructor for RTC class.
-         * Initializes the rtc object.
+         * @brief Default constructor.
+         * 
+         * Initializes internal state for the RTC interface.
          */
         RTC();
 
         /**
-         * @brief Initializes the I2C bus for the RTC module.
+         * @brief Initializes the I2C bus connection to the DS3231 RTC module.
          * 
-         * Uses predefined pins and frequency constants for SDA, SCL, and bus speed.
+         * Uses fixed pin/frequency definitions via the provided MCU instance.
+         * 
+         * @param mcu Pointer to the MCU abstraction layer handling I2C communication.
          */
-        void begin();
+        void begin(
+            MCU* mcu
+        );
 
         /**
-         * @brief Sets the RTC date and time using a datetime string and day of week.
+         * @brief Calibrates the RTC with a new datetime and day of the week.
          * 
-         * The datetime string should follow the format: "YY-MM-DDTHH:MM:SS".
-         * The values are parsed and written to the appropriate DS3231 registers.
+         * The datetime must follow the format: "YY-MM-DDTHH:MM:SS".
+         * The values are parsed and written to the appropriate RTC registers.
          * 
-         * @param datetime A String representing the date and time (e.g., "24-06-04T13:45:30").
-         * @param dayOfWeek An integer representing the day of the week (1 = Sunday, 7 = Saturday).
+         * @param datetime A datetime string (e.g., "24-06-04T13:45:30").
+         * @param dayOfWeek Day of the week (1 = Sunday, 7 = Saturday).
          */
         void calibrate(
             String datetime,
             int dayOfWeek
         );
 
-       /**
-         * @brief Retrieves the current date and/or time from the RTC.
+        /**
+         * @brief Retrieves the current date and/or time in formatted string.
          * 
-         * Reads from the DS3231's time registers and returns a formatted string.
-         * Values are cached for performance with a fallback retry mechanism.
+         * Reads from the RTC and formats the output as per the specified format.
+         * Uses a caching mechanism for performance and includes retry logic on failure.
          * 
-         * @param format The desired format: DATE_TIME, DATE_ONLY, or TIME_ONLY.
-         * @return A formatted string with date and/or time, or "NaN" if read fails.
+         * @param format One of DATE_TIME, DATE_ONLY, or TIME_ONLY.
+         * @return A formatted string or "NaN" if the read fails.
          */
         String read(
             Format format = DATE_TIME
         );
 
         /**
-         * @brief Reads the current temperature from the DS3231 RTC sensor.
+         * @brief Reads the current temperature from the DS3231's internal sensor.
          * 
-         * Reads two bytes from the temperature registers, combines them,
-         * and converts to a floating-point temperature value in Celsius.
-         * 
-         * @return The temperature in degrees Celsius.
+         * @return Temperature in degrees Celsius.
          */
         float temperature();
 
         /**
-         * @brief Calls a callback function when the temperature changes.
+         * @brief Registers a callback to be triggered when temperature changes.
          * 
-         * Reads the current temperature and compares it to the last known value.
-         * If different, updates the stored temperature and invokes the callback.
+         * Compares current and previously recorded temperature. If different,
+         * updates the cache and invokes the provided callback.
          * 
-         * @param onChange Function to call with the new temperature value.
+         * @param onChange Callback function that receives the new temperature value.
          */
         void onTemperatureChange(
             std::function<void(float)> onChange
         );
 
     private:
+        /**
+         * @brief Internal structure for caching last-read date/time.
+         */
         struct Cache {
-            String date; ///< Cached date.
-            String time; ///< Cached time.
-            unsigned long msDate; ///< Date cache time.
-            unsigned long msTime; ///< Time cache time.
+            String date; ///< Cached date string.
+            String time; ///< Cached time string.
+            unsigned long msDate; ///< Timestamp for date cache.
+            unsigned long msTime; ///< Timestamp for time cache.
         };
 
-        Cache _cache; ///< Cached datetime.
-        float _oldTemperature = 0.0; ///< The previous temperature recorded by the rtc.
+        MCU* _mcu; ///< Pointer to the MCU instance for I2C communication.
+        Cache _cache;               ///< Cache for recent date/time values.
+        float _oldTemperature = 0.0; ///< Last recorded temperature value.
 
         /**
-         * @brief Clears the internal date/time cache timestamps.
-         * 
-         * Resets the millisecond timestamps used for caching the most recent date/time read.
+         * @brief Resets cached date/time timestamps.
          */
         void _resetCache();
 
         /**
-         * @brief Parses the input byte `w` and returns a formatted string based on the provided range and suffix.
+         * @brief Parses a byte value to formatted string if in range.
          * 
-         * @param w The byte value to be checked and formatted.
-         * @param x The lower bound of the range (inclusive).
-         * @param y The upper bound of the range (inclusive).
-         * @param z The string suffix to append if `w` is within the range.
-         * @return A formatted string with a leading zero if `w` is less than 10 and within the range [x, y], followed by `z`.
-         *         Returns an empty string if `w` is out of the range.
+         * Adds leading zero if needed, appends suffix, and filters by range.
+         * 
+         * @param w Value to format.
+         * @param x Minimum accepted value.
+         * @param y Maximum accepted value.
+         * @param z Suffix to append.
+         * @return Formatted string or empty if out of range.
          */
         String _parse(byte w, byte x, byte y, String z);
 
         /**
-         * @brief Converts a decimal byte value to BCD (Binary-Coded Decimal).
+         * @brief Converts decimal to Binary-Coded Decimal (BCD).
          * 
-         * @param val The decimal value (0–99).
-         * @return The BCD representation.
+         * @param val Decimal value (0–99).
+         * @return Equivalent BCD byte.
          */
         byte _decToBcd(byte val);
 
         /**
-         * @brief Converts a BCD (Binary-Coded Decimal) byte to decimal.
+         * @brief Converts Binary-Coded Decimal (BCD) to decimal.
          * 
-         * @param val The BCD value.
-         * @return The decimal equivalent.
+         * @param val BCD byte.
+         * @return Equivalent decimal value.
          */
         byte _bcdToDec(byte val);
 
         /**
-         * @brief Checks if the DS3231 RTC module is connected on the I2C bus.
+         * @brief Checks if the DS3231 is connected and responsive on the I2C bus.
          * 
-         * Initiates an I2C transmission to the device address (0x68) and checks
-         * for an acknowledgment (ACK) from the RTC module. If no ACK is received,
-         * it prints an error message and returns false.
+         * Attempts a transmission to address 0x68 and checks for ACK.
          * 
-         * @note This function does not attempt to read or write any data beyond 
-         * the address check. It is useful for confirming device presence during initialization.
-         * 
-         * @return true if the RTC module is connected and acknowledged on the bus.
-         * @return false if the device is not responding or not present.
+         * @return true if the RTC is detected.
+         * @return false if not connected or unresponsive.
          */
         bool _isConnected();
 };
 
-#endif
+#endif ///< rtc_h

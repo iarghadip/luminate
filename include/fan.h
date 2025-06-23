@@ -1,46 +1,54 @@
 #ifndef fan_h
 #define fan_h
 
-// Libraries from system framework
-#include <Arduino.h>
+// Libraries from module wrappers
+#include <mcu.h>
 
 /**
  * @class FAN
- * @brief Represents a cooling device controlled by GPIO pins.
+ * @brief Controls a GPIO-based fan based on temperature input.
  * 
- * The FAN class manages one or more GPIO-controlled cooling devices. It allows
- * initialization and toggling of the device state based on a given temperature threshold.
+ * The FAN class manages a fan (or similar cooling device) through GPIO using an MCU wrapper.
+ * It allows initialization and dynamic speed adjustment using a linear PWM profile based on temperature.
  */
 class FAN {
     public:
         /**
-         * @brief Constructs a FAN object with default pin configuration.
+         * @brief Constructs a FAN object with default internal state.
          * 
-         * This constructor initializes the internal state of the FAN class.
+         * Initializes the object but does not configure hardware. 
+         * Call begin() to initialize the GPIO.
          */
         FAN();
 
         /**
          * @brief Initializes the GPIO pin(s) used by the fan.
          * 
-         * Call this function in your setup routine to configure the fan's GPIO pins.
+         * This function should be called during setup. It configures the necessary 
+         * GPIO using the provided MCU instance for output control.
+         * 
+         * @param mcu Pointer to the MCU abstraction providing hardware access.
          */
-        void begin();
+        void begin(
+            MCU* mcu
+        );
 
         /**
-         * @brief Adjust fan speed based on temperature.
+         * @brief Adjusts fan speed based on the input temperature.
          * 
-         * Below 25°C: fan off.  
-         * From 25°C to 100°C: PWM increases linearly from 0% to 100%.
+         * Behavior:
+         * - Below 25°C: Fan remains off.
+         * - Between 25°C and 100°C: PWM duty cycle increases linearly from 0% to 100%.
+         * - Above 100°C: Fan remains at 100%.
          * 
-         * @param temperature Temperature in °C, expected from -100 to 100.
+         * @param temperature Current temperature in degrees Celsius (-100°C to 100°C expected).
          */
         void adjust(
             float temperature
         );
 
     private:
-        // No private members
+        MCU* _mcu; ///< Pointer to the MCU instance controlling the fan GPIO/PWM.
 };
 
 #endif ///< fan_h

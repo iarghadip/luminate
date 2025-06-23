@@ -1,31 +1,13 @@
 #include <rtc.h>
 
-/**
- * @brief Constructs a RTC object and initializes the I2C communication.
- * 
- * Initializes the Wire library to prepare communication with the DS3231.
- */
 RTC::RTC() {}
 
-/**
- * @brief Initializes the I2C bus for the RTC module.
- * 
- * Uses predefined pins and frequency constants for SDA, SCL, and bus speed.
- */
-void RTC::begin() {
+void RTC::begin(MCU* mcu) {
     Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL, I2C_FREQUENCY);
     _isConnected();
+    _mcu = mcu;
 }
 
-/**
- * @brief Sets the RTC date and time using a datetime string and day of week.
- * 
- * The datetime string should follow the format: "YY-MM-DDTHH:MM:SS".
- * The values are parsed and written to the appropriate DS3231 registers.
- * 
- * @param datetime A String representing the date and time (e.g., "24-06-04T13:45:30").
- * @param dayOfWeek An integer representing the day of the week (1 = Sunday, 7 = Saturday).
- */
 void RTC::calibrate(
     String datetime,
     int dayOfWeek
@@ -55,15 +37,6 @@ void RTC::calibrate(
     }
 }
 
-/**
- * @brief Retrieves the current date and/or time from the RTC.
- * 
- * Reads from the DS3231's time registers and returns a formatted string.
- * Values are cached for performance with a fallback retry mechanism.
- * 
- * @param format The desired format: DATE_TIME, DATE_ONLY, or TIME_ONLY.
- * @return A formatted string with date and/or time, or "NaN" if read fails.
- */
 String RTC::read(
     Format format
 ) {
@@ -134,14 +107,6 @@ String RTC::read(
     return "NaN";
 }
 
-/**
- * @brief Reads the current temperature from the DS3231 RTC sensor.
- * 
- * Reads two bytes from the temperature registers, combines them,
- * and converts to a floating-point temperature value in Celsius.
- * 
- * @return The temperature in degrees Celsius.
- */
 float RTC::temperature() {
     if (_isConnected()) {
         Wire.beginTransmission(0x68);
@@ -156,14 +121,6 @@ float RTC::temperature() {
     return 0.0;
 }
 
-/**
- * @brief Calls a callback function when the temperature changes.
- * 
- * Reads the current temperature and compares it to the last known value.
- * If different, updates the stored temperature and invokes the callback.
- * 
- * @param onChange Function to call with the new temperature value.
- */
 void RTC::onTemperatureChange(
     std::function<void(float)> onChange
 ) {
@@ -174,26 +131,11 @@ void RTC::onTemperatureChange(
     }
 }
 
-/**
- * @brief Clears the internal date/time cache timestamps.
- * 
- * Resets the millisecond timestamps used for caching the most recent date/time read.
- */
 void RTC::_resetCache() {
     _cache.msDate = 0;
     _cache.msTime = 0;
 }
 
-/**
- * @brief Parses the input byte `w` and returns a formatted string based on the provided range and suffix.
- * 
- * @param w The byte value to be checked and formatted.
- * @param x The lower bound of the range (inclusive).
- * @param y The upper bound of the range (inclusive).
- * @param z The string suffix to append if `w` is within the range.
- * @return A formatted string with a leading zero if `w` is less than 10 and within the range [x, y], followed by `z`.
- *         Returns an empty string if `w` is out of the range.
- */
 String RTC::_parse(byte w, byte x, byte y, String z) {
     if (w >= x && w <= y) {
         return ((w < 10) ? "0" : "") + String(w) + z;
@@ -201,39 +143,14 @@ String RTC::_parse(byte w, byte x, byte y, String z) {
     return "";
 }
 
-/**
- * @brief Converts a decimal byte value to BCD (Binary-Coded Decimal).
- * 
- * @param val The decimal value (0–99).
- * @return The BCD representation.
- */
 byte RTC::_decToBcd(byte val) {
     return ((val / 10) << 4) | (val % 10);
 }
 
-/**
- * @brief Converts a BCD (Binary-Coded Decimal) byte to decimal.
- * 
- * @param val The BCD value.
- * @return The decimal equivalent.
- */
 byte RTC::_bcdToDec(byte val) {
     return ((val >> 4) * 10) + (val & 0x0F);
 }
 
-/**
- * @brief Checks if the DS3231 RTC module is connected on the I2C bus.
- * 
- * Initiates an I2C transmission to the device address (0x68) and checks
- * for an acknowledgment (ACK) from the RTC module. If no ACK is received,
- * it prints an error message and returns false.
- * 
- * @note This function does not attempt to read or write any data beyond 
- * the address check. It is useful for confirming device presence during initialization.
- * 
- * @return true if the RTC module is connected and acknowledged on the bus.
- * @return false if the device is not responding or not present.
- */
 bool RTC::_isConnected() {
     Wire.beginTransmission(0x68);
     if (Wire.endTransmission() != 0) {

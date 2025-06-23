@@ -1,77 +1,76 @@
 #ifndef dls_h
 #define dls_h
 
-// Libraries from system framework
-#include <Arduino.h>
-#include <Wire.h>
-
 // Libraries from module wrappers
 #include <mcu.h>
 
 /**
- * @brief Provides an interface to a digital light sensor.
+ * @brief Provides an interface to a digital light sensor (BH1750).
  * 
- * The DLS class allows initializing the sensor, reading brightness levels,
- * and registering callbacks to respond to changes in ambient light.
+ * The DLS class enables initialization, brightness reading (in percentage), and 
+ * callback registration for ambient light change detection.
  */
 class DLS {
     public:
         /**
          * @brief Constructs a DLS object.
          * 
-         * Prepares the instance for initialization and use.
+         * Prepares the instance for initialization and use with a BH1750 sensor.
          */
         DLS();
 
         /**
          * @brief Initializes the BH1750 digital light sensor.
          * 
-         * Sets up I2C communication and starts the sensor in continuous high-resolution mode.
+         * Sets up I2C communication using the provided MCU instance and 
+         * configures the sensor in continuous high-resolution mode.
+         * 
+         * @param mcu Pointer to the MCU instance handling I2C communication.
          */
-        void begin();
+        void begin(
+            MCU* mcu
+        );
 
         /**
-         * @brief Reads the current ambient brightness level from the BH1750 sensor.
+         * @brief Reads the current ambient brightness level from the sensor.
          * 
-         * Converts the lux reading to a percentage, where 100 lux corresponds to 100%.
-         * The resulting percentage is constrained to a minimum threshold to ensure 
-         * that brightness never drops below a specified level.
+         * Converts the lux value to a percentage (relative to 100 lux). The result is 
+         * constrained to a minimum threshold to ensure the brightness doesn't fall below 
+         * a defined floor (useful for dimming applications).
          * 
-         * @param minimumBrightness The lowest allowable brightness percentage (e.g., 5.0).
-         * @return Brightness as a percentage (minimumBrightness to 100.0).
+         * @param minimumBrightness Minimum allowed brightness percentage (e.g., 5.0).
+         * @return Brightness as a percentage (from minimumBrightness up to 100.0).
          */
         float read(
             float minimumBrightness = 0.0f
         );
 
         /**
-         * @brief Registers a callback function to be called when the brightness changes.
+         * @brief Registers a callback function for brightness change events.
          * 
-         * The callback is triggered only when the brightness value differs from the last recorded value.
+         * The provided function is invoked only when a change in brightness 
+         * is detected compared to the previous value.
          * 
-         * @param onChange Function that receives the updated brightness percentage.
+         * @param onChange Callback receiving the updated brightness percentage.
          */
         void onBrightnessChange(
             std::function<void(float)> onChange
         );
-    
+
     private:
-        MCU _mcu; ///< Object representing the mcu wrapper.
-        unsigned long _lastRead = 0; ///< Timestamp of the last sensor reading in ms.
-        float _oldBrightness = 0.0f; ///< The previously recorded brightness.
+        MCU* _mcu; ///< Pointer to the MCU instance managing sensor communication.
+        unsigned long _lastRead = 0; ///< Timestamp of the last brightness reading (in milliseconds).
+        float _oldBrightness = 0.0f; ///< Previously recorded brightness percentage.
 
         /**
-         * @brief Checks if the BH1750 DLS module is connected on the I2C bus.
+         * @brief Checks whether the BH1750 sensor is connected on the I2C bus.
          * 
-         * Initiates an I2C transmission to the device address (0x23) and checks
-         * for an acknowledgment (ACK) from the DLS module. If no ACK is received,
-         * it prints an error message and returns false.
+         * Sends an I2C transmission to the BH1750's address (0x23) to confirm device presence.
          * 
-         * @note This function does not attempt to read or write any data beyond 
-         * the address check. It is useful for confirming device presence during initialization.
+         * @note No data is read or written beyond the address check.
          * 
-         * @return true if the DLS module is connected and acknowledged on the bus.
-         * @return false if the device is not responding or not present.
+         * @return true if the sensor responds to the I2C address.
+         * @return false if the device is not connected or not responding.
          */
         bool _isConnected();
 };

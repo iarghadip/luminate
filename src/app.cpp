@@ -1,15 +1,15 @@
+#include <mcu.h>
 #include <btn.h>
 #include <dls.h>
 #include <fan.h>
 #include <led.h>
-#include <mcu.h>
 #include <rtc.h>
 
+MCU _mcu;
 BTN _btn;
 DLS _dls;
 FAN _fan;
 LED _led;
-MCU _mcu;
 RTC _rtc;
 
 /**
@@ -87,11 +87,11 @@ void updateRTC(
  * Should be called once during system startup.
  */
 void setup() {
-    _dls.begin();
-    _fan.begin();
-    _led.begin();
     _mcu.begin();
-    _rtc.begin();
+    _dls.begin(&_mcu);
+    _fan.begin(&_mcu);
+    _led.begin(&_mcu);
+    _rtc.begin(&_mcu);
     _mcu.log("setup(): Welcome to " + String(FIRMWARE_NAME) + " (v" + String(FIRMWARE_VERSION) + ").");
     _mcu.assign(1, handleConnectionChange);
     _mcu.assign(1, handleResetButtonPress);
