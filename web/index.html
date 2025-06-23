@@ -197,6 +197,13 @@
             .mb-4 {
                 margin-bottom: 96px !important;
             }
+            .header {
+                padding-top: 24px;
+                position: fixed;
+                width: 100%;
+                text-align: center;
+                color: rgba(255, 255, 255, 0.4);
+            }
         </style>
         <script>
             document.addEventListener("DOMContentLoaded", () => {
@@ -296,6 +303,9 @@
         </script>
     </head>
     <body class="full-height">
+        <div class="header">
+            {FIRMWARE_VERSION}
+        </div>
         <div class="flex-center full-height">
             <form autocomplete="off" class="form mb-4" action="/wifi/save" method="post" novalidate>
                 <div class="control mb-2">
@@ -341,7 +351,6 @@
                 </button>
             </form>
             <div class="footer">
-                {FIRMWARE_VERSION}
                 <div class="container">
                 </div>
             </div>
