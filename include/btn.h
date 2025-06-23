@@ -52,9 +52,9 @@ class BTN {
         );
 
     private:
-        MCU* _mcu; ///< Pointer to the MCU instance for GPIO interaction.
-        unsigned long _pressStartTime = 0; ///< Timestamp when the button was initially pressed.
-        bool _wasPressed = false; ///< Internal state flag to track if the button was previously pressed.
+        MCU* _mcu; // Pointer to the MCU instance for GPIO interaction.
+        unsigned long _pressStartTime = 0; // Timestamp when the button was initially pressed.
+        bool _wasPressed = false; // Internal state flag to track if the button was previously pressed.
 };
 
 #endif // btn_h

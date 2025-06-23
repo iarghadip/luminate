@@ -17,9 +17,9 @@ class RTC {
          * @brief Enumeration for date/time formatting options.
          */
         enum Format {
-            DATE_TIME, ///< Output includes both date and time.
-            DATE_ONLY, ///< Output includes only date.
-            TIME_ONLY  ///< Output includes only time.
+            DATE_TIME, // Output includes both date and time.
+            DATE_ONLY, // Output includes only date.
+            TIME_ONLY  // Output includes only time.
         };
 
         /**
@@ -91,15 +91,15 @@ class RTC {
          * @brief Internal structure for caching last-read date/time.
          */
         struct Cache {
-            String date; ///< Cached date string.
-            String time; ///< Cached time string.
-            unsigned long msDate; ///< Timestamp for date cache.
-            unsigned long msTime; ///< Timestamp for time cache.
+            String date; // Cached date string.
+            String time; // Cached time string.
+            unsigned long msDate; // Timestamp for date cache.
+            unsigned long msTime; // Timestamp for time cache.
         };
 
-        MCU* _mcu; ///< Pointer to the MCU instance for I2C communication.
-        Cache _cache;               ///< Cache for recent date/time values.
-        float _oldTemperature = 0.0; ///< Last recorded temperature value.
+        MCU* _mcu; // Pointer to the MCU instance for I2C communication.
+        Cache _cache;               // Cache for recent date/time values.
+        float _oldTemperature = 0.0; // Last recorded temperature value.
 
         /**
          * @brief Resets cached date/time timestamps.
@@ -146,4 +146,4 @@ class RTC {
         bool _isConnected();
 };
 
-#endif ///< rtc_h
+#endif // rtc_h

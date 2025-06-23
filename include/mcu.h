@@ -21,8 +21,8 @@
  */
 class MCU {
     public:
-        Preferences preferences; ///< Preferences instance for persistent key-value storage.
-        bool isUserInterrupt = false; ///< Tracks user button interrupt state.
+        Preferences preferences; // Preferences instance for persistent key-value storage.
+        bool isUserInterrupt = false; // Tracks user button interrupt state.
 
         /**
          * @brief Constructs an MCU object.
@@ -126,12 +126,24 @@ class MCU {
             bool system = false
         );
 
+        /**
+         * @brief Updates the internal timestamp with a new value.
+         * 
+         * Stores or replaces the current timestamp used for tracking or logging purposes.
+         * 
+         * @param timestamp A string representing the new timestamp.
+         */
+        void updateLogginTimestamp(
+            String timestamp
+        );
+
     private:
-        DNSServer _dns; ///< Internal DNS server for captive portal.
-        HTTPClient _client; ///< HTTP client for outgoing requests.
-        WebServer _server; ///< Web server for setup interface.
-        int _standardRequestIntervalFactor = 1; ///< Multiplier for retry timing logic.
-        bool _isServerRunning = false; ///< Indicates if setup interface server is running.
+        DNSServer _dns; // Internal DNS server for captive portal.
+        HTTPClient _client; // HTTP client for outgoing requests.
+        WebServer _server; // Web server for setup interface.
+        String _timestamp = "NaN"; // Stores the most recent timestamp as a string.
+        int _standardRequestIntervalFactor = 1; // Multiplier for retry timing logic.
+        bool _isServerRunning = false; // Indicates if setup interface server is running.
 
         /**
          * @brief Converts a boolean to its string representation.
@@ -193,4 +205,4 @@ class MCU {
         void _startSetupInterfaceServer();
 };
 
-#endif ///< mcu_h
+#endif // mcu_h

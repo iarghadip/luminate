@@ -48,7 +48,7 @@ class FAN {
         );
 
     private:
-        MCU* _mcu; ///< Pointer to the MCU instance controlling the fan GPIO/PWM.
+        MCU* _mcu; // Pointer to the MCU instance controlling the fan GPIO/PWM.
 };
 
-#endif ///< fan_h
+#endif // fan_h

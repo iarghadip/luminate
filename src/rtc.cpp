@@ -154,7 +154,7 @@ byte RTC::_bcdToDec(byte val) {
 bool RTC::_isConnected() {
     Wire.beginTransmission(0x68);
     if (Wire.endTransmission() != 0) {
-        Serial.println("NaN @ Error -> _isConnected(): RTC module not found!");
+        _mcu->log("_isConnected(): RTC module not found!");
         return false;
     }
     return true;

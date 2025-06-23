@@ -19,7 +19,7 @@ void MCU::log(
 ) {
     if (DEBUG_MODE_ENABLED) {
         Serial.println(
-            String("") + " @ " + (
+            _timestamp + " @ " + (
                 success ? "Debug" : "Error"
             ) + " -> " + message
         );
@@ -124,6 +124,12 @@ void MCU::kill(
         log("kill(): Killing task...");
         vTaskDelete(NULL);
     }
+}
+
+void MCU::updateLogginTimestamp(
+    String timestamp
+) {
+    _timestamp = timestamp;
 }
 
 void MCU::_setStandardRequestIntervalFactor(

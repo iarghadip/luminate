@@ -51,9 +51,9 @@ class LED {
         );
 
     private:
-        MCU* _mcu; ///< Pointer to the MCU instance used for GPIO and PWM control.
-        int _oldCoolBrightness; ///< Most recent brightness applied to the cool white LED.
-        int _oldWarmBrightness; ///< Most recent brightness applied to the warm white LED.
+        MCU* _mcu; // Pointer to the MCU instance used for GPIO and PWM control.
+        int _oldCoolBrightness; // Most recent brightness applied to the cool white LED.
+        int _oldWarmBrightness; // Most recent brightness applied to the warm white LED.
 
         /**
          * @brief Performs linear interpolation between two values.
@@ -88,4 +88,4 @@ class LED {
         );
 };
 
-#endif ///< led_h
+#endif // led_h

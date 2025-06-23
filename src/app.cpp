@@ -94,7 +94,6 @@ void setup() {
     _rtc.begin(&_mcu);
     _mcu.log("setup(): Welcome to " + String(FIRMWARE_NAME) + " (v" + String(FIRMWARE_VERSION) + ").");
     _mcu.assign(1, handleConnectionChange);
-    _mcu.assign(1, handleResetButtonPress);
     _mcu.assign(1, updateLED);
     _mcu.assign(1, updateRTC);
 }
@@ -106,7 +105,25 @@ void setup() {
  * and logging at regular intervals.
  */
 void loop() {
-    _mcu.delay(CHANGES_LOG_INTERVAL, []() {
+    _mcu.delay(MAIN_LOOP_INTERVAL, []() {
+        _mcu.updateLogginTimestamp(_rtc.read());
+        if (!_mcu.isUserInterrupt) {
+            _btn.onSinglePress([]() {
+                _mcu.isUserInterrupt = true;
+                _mcu.setWLED(LOW);
+                _mcu.log("loop(): _mcu.delay(): _btn.onSinglePress(): Restarting device...");
+                _mcu.kill(true);
+            });
+            _btn.onLongPress([]() {
+                _mcu.isUserInterrupt = true;
+                _mcu.setWLED(LOW);
+                _mcu.preferences.clear();
+                _mcu.preferences.end();
+                _mcu.log("loop(): _mcu.delay(): _btn.onLongPress(): User preferences cleared.");
+                _mcu.log("loop(): _mcu.delay(): _btn.onLongPress(): Restarting device...");
+                _mcu.kill(true);
+            });
+        }
         _dls.onBrightnessChange([](float brightness) {
             _mcu.log("loop(): _mcu.delay(): _dls.onBrightnessChange(): brightness: " + String(brightness));
         });
@@ -149,44 +166,6 @@ void handleConnectionChange(
             } else {
                 _mcu.setWLED((((millis() / WIFI_LED_BLINK_INTERVAL) % 2) == 0) ? HIGH : LOW);
             }
-        });
-    }
-}
-
-/**
- * @brief RTOS task that monitors the reset button for a long press and clears WiFi credentials.
- * 
- * This task continuously checks if the reset button (typically on GPIO 0) has been held
- * for more than a specified duration (e.g., 5 seconds). If a long press is detected, it
- * deletes the stored WiFi SSID and password from preferences, and then restarts the ESP32.
- * 
- * @param arguments Unused task parameter. Can be used to pass context if needed.
- * 
- * @note This function is designed to be run as a FreeRTOS task using xTaskCreate or xTaskCreatePinnedToCore.
- * @see _btn.onLongPress
- * @see _mcu.preferences.remove
- * @see ESP.restart
- */
-void handleResetButtonPress(
-    void* arguments
-) {
-    while (!_mcu.isUserInterrupt) {
-        _mcu.delay(1, []() {
-            _btn.onSinglePress([]() {
-                _mcu.isUserInterrupt = true;
-                _mcu.setWLED(LOW);
-                _mcu.log("handleResetButtonPress(): _btn.onSinglePress(): Restarting device...");
-                _mcu.kill(true);
-            });
-            _btn.onLongPress([]() {
-                _mcu.isUserInterrupt = true;
-                _mcu.setWLED(LOW);
-                _mcu.preferences.clear();
-                _mcu.preferences.end();
-                _mcu.log("handleResetButtonPress(): _btn.onLongPress(): User preferences cleared.");
-                _mcu.log("handleResetButtonPress(): _btn.onLongPress(): Restarting device...");
-                _mcu.kill(true);
-            });
         });
     }
 }
