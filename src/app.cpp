@@ -27,25 +27,7 @@ RTC _rtc;
  * @see WIFI_LED_BLINK_INTERVAL
  * @see PIN_LED_WIFI
  */
-void handleConnectionChange(
-    void* arguments
-);
-
-/**
- * @brief RTOS task that monitors the reset button for a long press and clears WiFi credentials.
- * 
- * This task continuously checks if the reset button (typically on GPIO 0) has been held
- * for more than a specified duration (e.g., 5 seconds). If a long press is detected, it
- * deletes the stored WiFi SSID and password from preferences, and then restarts the ESP32.
- * 
- * @param arguments Unused task parameter. Can be used to pass context if needed.
- * 
- * @note This function is designed to be run as a FreeRTOS task using xTaskCreate or xTaskCreatePinnedToCore.
- * @see _btn.onLongPress
- * @see _mcu.preferences.remove
- * @see ESP.restart
- */
-void handleResetButtonPress(
+void updateWSL(
     void* arguments
 );
 
@@ -93,7 +75,7 @@ void setup() {
     _led.begin(&_mcu);
     _rtc.begin(&_mcu);
     _mcu.log("setup(): Welcome to " + String(FIRMWARE_NAME) + " (v" + String(FIRMWARE_VERSION) + ").");
-    _mcu.assign(1, handleConnectionChange);
+    _mcu.assign(1, updateWSL);
     _mcu.assign(1, updateLED);
     _mcu.assign(1, updateRTC);
 }
@@ -149,18 +131,18 @@ void loop() {
  * @see WIFI_LED_BLINK_INTERVAL
  * @see PIN_LED_WIFI
  */
-void handleConnectionChange(
+void updateWSL(
     void* arguments
 ) {
-    _mcu.log("handleConnectionChange(): Waiting for WiFi connection...");
+    _mcu.log("updateWSL(): Waiting for WiFi connection...");
     while (true) {
         _mcu.delay(WIFI_LED_BLINK_INTERVAL, []() {
             if (WiFi.status() == WL_CONNECTED) {
-                _mcu.log("handleConnectionChange(): _mcu.delay(): Connected to WiFi.");
+                _mcu.log("updateWSL(): _mcu.delay(): Connected to WiFi.");
                 _mcu.setWLED(HIGH);
                 _mcu.kill();
             } else if (_mcu.isUserInterrupt) {
-                _mcu.log("handleConnectionChange(): _mcu.delay(): User interrupted.");
+                _mcu.log("updateWSL(): _mcu.delay(): User interrupted.");
                 _mcu.setWLED(LOW);
                 _mcu.kill();
             } else {
