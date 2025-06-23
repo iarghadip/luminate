@@ -19,7 +19,7 @@ class RTC {
         enum Format {
             DATE_TIME, // Output includes both date and time.
             DATE_ONLY, // Output includes only date.
-            TIME_ONLY  // Output includes only time.
+            TIME_ONLY // Output includes only time.
         };
 
         /**
@@ -98,7 +98,7 @@ class RTC {
         };
 
         MCU* _mcu; // Pointer to the MCU instance for I2C communication.
-        Cache _cache;               // Cache for recent date/time values.
+        Cache _cache; // Cache for recent date/time values.
         float _oldTemperature = 0.0; // Last recorded temperature value.
 
         /**
@@ -117,7 +117,12 @@ class RTC {
          * @param z Suffix to append.
          * @return Formatted string or empty if out of range.
          */
-        String _parse(byte w, byte x, byte y, String z);
+        String _parse(
+            byte w,
+            byte x,
+            byte y,
+            String z
+        );
 
         /**
          * @brief Converts decimal to Binary-Coded Decimal (BCD).
@@ -125,7 +130,9 @@ class RTC {
          * @param val Decimal value (0–99).
          * @return Equivalent BCD byte.
          */
-        byte _decToBcd(byte val);
+        byte _decToBcd(
+            byte val
+        );
 
         /**
          * @brief Converts Binary-Coded Decimal (BCD) to decimal.
@@ -133,7 +140,9 @@ class RTC {
          * @param val BCD byte.
          * @return Equivalent decimal value.
          */
-        byte _bcdToDec(byte val);
+        byte _bcdToDec(
+            byte val
+        );
 
         /**
          * @brief Checks if the DS3231 is connected and responsive on the I2C bus.

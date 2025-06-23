@@ -2,7 +2,9 @@
 
 DLS::DLS() {}
  
-void DLS::begin(MCU* mcu) {
+void DLS::begin(
+    MCU* mcu
+) {
     Wire.begin();
     Wire.beginTransmission(0x23);
     Wire.write(0x01);
@@ -22,7 +24,9 @@ void DLS::begin(MCU* mcu) {
     _mcu = mcu;
 }
 
-float DLS::read(float minimumBrightness) {
+float DLS::read(
+    float minimumBrightness
+) {
     if (_isConnected()) {
         unsigned long current = millis();
         if (current - _lastRead < (120 * 69 / 69)) {

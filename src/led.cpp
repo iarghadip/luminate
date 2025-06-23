@@ -2,7 +2,9 @@
 
 LED::LED() {}
 
-void LED::begin(MCU* mcu) {
+void LED::begin(
+    MCU* mcu
+) {
     pinMode(PIN_LED_COOL, OUTPUT);
     pinMode(PIN_LED_WARM, OUTPUT);
     ledcSetup(PWM_CHANNEL_LED_COOL, PWM_FREQUENCY, PWM_RESOLUTION_BITS);

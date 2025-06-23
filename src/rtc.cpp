@@ -2,7 +2,9 @@
 
 RTC::RTC() {}
 
-void RTC::begin(MCU* mcu) {
+void RTC::begin(
+    MCU* mcu
+) {
     Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL, I2C_FREQUENCY);
     _isConnected();
     _mcu = mcu;
@@ -136,18 +138,27 @@ void RTC::_resetCache() {
     _cache.msTime = 0;
 }
 
-String RTC::_parse(byte w, byte x, byte y, String z) {
+String RTC::_parse(
+    byte w,
+    byte x,
+    byte y,
+    String z
+) {
     if (w >= x && w <= y) {
         return ((w < 10) ? "0" : "") + String(w) + z;
     }
     return "";
 }
 
-byte RTC::_decToBcd(byte val) {
+byte RTC::_decToBcd(
+    byte val
+) {
     return ((val / 10) << 4) | (val % 10);
 }
 
-byte RTC::_bcdToDec(byte val) {
+byte RTC::_bcdToDec(
+    byte val
+) {
     return ((val >> 4) * 10) + (val & 0x0F);
 }
 

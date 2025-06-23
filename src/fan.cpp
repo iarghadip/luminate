@@ -2,7 +2,9 @@
 
 FAN::FAN() {}
 
-void FAN::begin(MCU* mcu) {
+void FAN::begin(
+    MCU* mcu
+) {
     pinMode(PIN_BLDC_FAN, OUTPUT);
     ledcSetup(PWM_CHANNEL_BLDC_FAN, PWM_FREQUENCY, PWM_RESOLUTION_BITS);
     ledcAttachPin(PIN_BLDC_FAN, PWM_CHANNEL_BLDC_FAN);
