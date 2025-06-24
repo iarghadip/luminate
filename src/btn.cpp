@@ -8,7 +8,6 @@ void BTN::begin(
     _mcu = mcu;
     _mcu->log("BTN::begin(): Initializing BTN...");
     pinMode(PIN_RESET_BUTTON, INPUT_PULLUP);
-    _mcu->log("BTN::begin(): Initialization completed.");
 }
 
 void BTN::onSinglePress(

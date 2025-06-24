@@ -23,7 +23,6 @@ void DLS::begin(
     Wire.endTransmission();
     delay(10);
     _isConnected();
-    _mcu->log("DLS::begin(): Initialization completed.");
 }
 
 float DLS::read(
@@ -53,7 +52,7 @@ void DLS::onBrightnessChange(
     std::function<void(float)> onChange
 ) {
     float currentBrightness = read();
-    if (currentBrightness != _oldBrightness) {
+    if (fabs(currentBrightness - _oldBrightness) >= 1.0f) {
         _oldBrightness = currentBrightness;
         _mcu->log("DLS::onBrightnessChange(): currentBrightness: " + String(currentBrightness));
         onChange(currentBrightness);

@@ -10,7 +10,6 @@ void FAN::begin(
     pinMode(PIN_BLDC_FAN, OUTPUT);
     ledcSetup(PWM_CHANNEL_BLDC_FAN, PWM_FREQUENCY, PWM_RESOLUTION_BITS);
     ledcAttachPin(PIN_BLDC_FAN, PWM_CHANNEL_BLDC_FAN);
-    _mcu->log("FAN::begin(): Initialization completed.");
 }
 
 void FAN::adjust(
@@ -23,5 +22,4 @@ void FAN::adjust(
     _mcu->log("FAN::adjust(): percentage: " + String(percentage * 100.0f));
     _mcu->log("FAN::adjust(): duty: " + String(duty));
     ledcWrite(PWM_CHANNEL_BLDC_FAN, duty);
-    _mcu->log("FAN::adjust(): duty was updated.");
 }

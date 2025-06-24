@@ -9,7 +9,6 @@ void RTC::begin(
     _mcu->log("RTC::begin(): Initializing RTC...");
     Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL, I2C_FREQUENCY);
     _isConnected();
-    _mcu->log("RTC::begin(): Initialization completed.");
 }
 
 void RTC::calibrate(
@@ -41,7 +40,6 @@ void RTC::calibrate(
         Wire.write(_decToBcd(month));
         Wire.write(_decToBcd(year));
         Wire.endTransmission();
-        _mcu->log("RTC::calibrate(): datetime and dayOfWeek was updated.");
     }
 }
 
@@ -134,11 +132,11 @@ float RTC::temperature() {
 void RTC::onTemperatureChange(
     std::function<void(float)> onChange
 ) {
-    float newTemperature = temperature();
-    if (_oldTemperature != newTemperature) {
-        _oldTemperature = newTemperature;
-        _mcu->log("RTC::onTemperatureChange(): newTemperature: " + String(newTemperature));
-        onChange(newTemperature);
+    float currentTemperature = temperature();
+    if (fabs(currentTemperature - _oldTemperature) >= 1.0f) {
+        _oldTemperature = currentTemperature;
+        _mcu->log("RTC::onTemperatureChange(): currentTemperature: " + String(currentTemperature));
+        onChange(currentTemperature);
     }
 }
 
