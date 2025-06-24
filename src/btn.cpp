@@ -2,28 +2,29 @@
 
 BTN::BTN() {}
 
-void BTN::begin(MCU* mcu) {
-    pinMode(PIN_RESET_BUTTON, INPUT_PULLUP);
+void BTN::begin(
+    MCU* mcu
+) {
     _mcu = mcu;
+    _mcu->log("BTN::begin(): Initializing BTN...");
+    pinMode(PIN_RESET_BUTTON, INPUT_PULLUP);
+    _mcu->log("BTN::begin(): Initialization completed.");
 }
 
 void BTN::onSinglePress(
     std::function<void()> onSinglePress
 ) {
     bool isPressed = digitalRead(PIN_RESET_BUTTON) == LOW;
-
     if (isPressed && !_wasPressed) {
         _pressStartTime = millis();
         _wasPressed = true;
     }
-
     if (!isPressed && _wasPressed) {
         unsigned long pressDuration = millis() - _pressStartTime;
-
         if (pressDuration < RESET_BUTTON_PRESS_TIMEOUT) {
+            _mcu->log("BTN::onSinglePress(): Button was pressed.");
             onSinglePress();
         }
-
         _wasPressed = false;
     }
 }
@@ -40,6 +41,7 @@ void BTN::onLongPress(
         _wasPressed = false;
     }
     if (isPressed && (millis() - _pressStartTime >= RESET_BUTTON_PRESS_TIMEOUT)) {
+        _mcu->log("BTN::onLongPress(): Button was long pressed.");
         onLongPress();
         _wasPressed = false;
     }
