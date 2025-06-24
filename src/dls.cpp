@@ -55,6 +55,7 @@ void DLS::onBrightnessChange(
     float currentBrightness = read();
     if (currentBrightness != _oldBrightness) {
         _oldBrightness = currentBrightness;
+        _mcu->log("DLS::onBrightnessChange(): currentBrightness: " + String(currentBrightness));
         onChange(currentBrightness);
     }
 }

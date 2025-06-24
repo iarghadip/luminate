@@ -108,11 +108,10 @@ void loop() {
             });
         }
         _dls.onBrightnessChange([](float brightness) {
-            _mcu.log("loop(): _mcu.delay(): _dls.onBrightnessChange(): brightness: " + String(brightness));
+            // Nothing to do yet
         });
         _rtc.onTemperatureChange([](float temperature) {
             _fan.adjust(temperature);
-            _mcu.log("loop(): _mcu.delay(): _rtc.onTemperatureChange(): temperature: " + String(temperature));
         });
     });
 }

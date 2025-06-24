@@ -137,6 +137,7 @@ void RTC::onTemperatureChange(
     float newTemperature = temperature();
     if (_oldTemperature != newTemperature) {
         _oldTemperature = newTemperature;
+        _mcu->log("RTC::onTemperatureChange(): newTemperature: " + String(newTemperature));
         onChange(newTemperature);
     }
 }
