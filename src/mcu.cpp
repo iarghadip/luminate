@@ -5,11 +5,12 @@ MCU::MCU() {}
 void MCU::begin() {
     Serial.begin(DEBUG_FREQUENCY);
     Serial.println();
+    log("MCU::begin(): Initializing MCU...");
     pinMode(PIN_LED_WIFI, OUTPUT);
     preferences.begin(FIRMWARE_NAME, false);
     _reConnect();
     if(!SPIFFS.begin(true)) {
-        log("MCU::begin(): Failed to start SPIFS.");
+        log("MCU::begin(): Failed to start SPIFS!", false);
     }
 }
 
@@ -54,6 +55,7 @@ bool MCU::httpRequest(
         }
         String response = _client.getString();
         _client.end();
+        log("MCU::httpRequest(): Response fully received and client closed.");
         log("MCU::httpRequest(): isSuccess: " + _sBool(isSuccess), isSuccess);
         log("MCU::httpRequest(): httpCode: " + String(httpCode));
         log("MCU::httpRequest(): response: " + response);
@@ -88,14 +90,15 @@ void MCU::assign(
 ) {
     xTaskCreatePinnedToCore(
         function,
-        "_mcu.assign()",
+        "MCU::assign()",
         8192,
         arguments,
         1,
         NULL,
         cpuCore
     );
-    log("MCU::assign(): Task assigned to cpu cpuCore: " + String(cpuCore));
+    log("MCU::assign(): Task was assigned to cpu.");
+    log("MCU::assign(): cpuCore: " + String(cpuCore));
 }
 
 void MCU::delay(
@@ -119,6 +122,7 @@ void MCU::kill(
         delay(DEVICE_RESTART_TIMEOUT, [this]() {
             log("MCU::kill(): delay(): Restarting device...");
         });
+        log("MCU::kill(): Shutting down device...");
         ESP.restart();
     } else {
         log("MCU::kill(): Killing task...");
@@ -152,7 +156,7 @@ void MCU::_setStandardRequestIntervalFactor(
 
 void MCU::_reConnect() {
     if (preferences.isKey(KEY_WIFI_SSID) && preferences.isKey(KEY_WIFI_PASSWORD)) {
-        log("MCU::_reConnect(): WiFi is connecting to " + preferences.getString(KEY_WIFI_SSID) + ".");
+        log("MCU::_reConnect(): WiFi will be connected to \"" + preferences.getString(KEY_WIFI_SSID) + "\" network.");
         WiFi.begin(
             preferences.getString(KEY_WIFI_SSID),
             preferences.getString(KEY_WIFI_PASSWORD)
