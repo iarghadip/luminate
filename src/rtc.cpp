@@ -5,9 +5,11 @@ RTC::RTC() {}
 void RTC::begin(
     MCU* mcu
 ) {
+    _mcu = mcu;
+    _mcu->log("RTC::begin(): Initializing RTC...");
     Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL, I2C_FREQUENCY);
     _isConnected();
-    _mcu = mcu;
+    _mcu->log("RTC::begin(): Initialization completed.");
 }
 
 void RTC::calibrate(
@@ -15,6 +17,9 @@ void RTC::calibrate(
     int dayOfWeek
 ) {
     if (_isConnected()) {
+        _mcu->log("RTC::calibrate(): Updating datetime and dayOfWeek...");
+        _mcu->log("RTC::calibrate(): datetime: " + datetime);
+        _mcu->log("RTC::calibrate(): dayOfWeek: " + dayOfWeek);
         int dash1 = datetime.indexOf('-');
         int dash2 = datetime.indexOf('-', dash1 + 1);
         int tPos = datetime.indexOf('T');
@@ -36,6 +41,7 @@ void RTC::calibrate(
         Wire.write(_decToBcd(month));
         Wire.write(_decToBcd(year));
         Wire.endTransmission();
+        _mcu->log("RTC::calibrate(): datetime and dayOfWeek was updated.");
     }
 }
 
@@ -106,6 +112,7 @@ String RTC::read(
             return buffer;
         }
     }
+    _mcu->log("RTC::read(): Retry threshold exceeded!", false);
     return "NaN";
 }
 
@@ -120,6 +127,7 @@ float RTC::temperature() {
         uint8_t lsb = Wire.read();
         return msb + ((lsb >> 6) * 0.25f);
     }
+    _mcu->log("RTC::temperature(): Failed to read temperature data!", false);
     return 0.0;
 }
 
@@ -165,7 +173,7 @@ byte RTC::_bcdToDec(
 bool RTC::_isConnected() {
     Wire.beginTransmission(0x68);
     if (Wire.endTransmission() != 0) {
-        _mcu->log("_isConnected(): RTC module not found!");
+        _mcu->log("RTC::_isConnected(): RTC module not found!", false);
         return false;
     }
     return true;

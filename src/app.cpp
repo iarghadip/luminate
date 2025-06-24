@@ -207,7 +207,6 @@ void updateRTC(
     void* arguments
 ) {
     while (true) {
-        _mcu.log("updateRTC(): Updating system time...");
         _mcu.delay(
             _mcu.getTimeUpdateInterval(
                 _mcu.httpRequest(
@@ -218,7 +217,8 @@ void updateRTC(
                             deserializeJson(json, response);
                             if (json["datetime"].is<const char*>() && json["day_of_week"].is<const char*>()) {
                                 _rtc.calibrate(json["datetime"], json["day_of_week"]);
-                                _mcu.log("updateRTC(): RTC calibrated with datetime and day.");
+                            } else {
+                                _mcu.log("updateRTC(): Skipping RTC calibration due to invalid response!", false);
                             }
                         }
                     }
