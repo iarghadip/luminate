@@ -119,11 +119,11 @@ void MCU::kill(
     bool system
 ) {
     if (system) {
+        log("MCU::kill(): delay(): Restarting device...");
         delay(DEVICE_RESTART_TIMEOUT, [this]() {
-            log("MCU::kill(): delay(): Restarting device...");
+            log("MCU::kill(): Shutting down device...");
+            ESP.restart();
         });
-        log("MCU::kill(): Shutting down device...");
-        ESP.restart();
     } else {
         log("MCU::kill(): Killing task...");
         vTaskDelete(NULL);

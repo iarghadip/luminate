@@ -52,7 +52,7 @@ void DLS::onBrightnessChange(
     std::function<void(float)> onChange
 ) {
     float currentBrightness = read();
-    if (fabs(currentBrightness - _oldBrightness) >= 1.0f) {
+    if (currentBrightness != _oldBrightness) {
         _oldBrightness = currentBrightness;
         _mcu->log("DLS::onBrightnessChange(): currentBrightness: " + String(currentBrightness));
         onChange(currentBrightness);

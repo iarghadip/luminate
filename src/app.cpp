@@ -70,6 +70,7 @@ void updateRTC(
  */
 void setup() {
     _mcu.begin();
+    _btn.begin(&_mcu);
     _dls.begin(&_mcu);
     _fan.begin(&_mcu);
     _led.begin(&_mcu);
@@ -94,7 +95,6 @@ void loop() {
             _btn.onSinglePress([]() {
                 _mcu.isUserInterrupt = true;
                 _mcu.setWLED(LOW);
-                _mcu.log("loop(): _mcu.delay(): _btn.onSinglePress(): Restarting device...");
                 _mcu.kill(true);
             });
             _btn.onLongPress([]() {
@@ -103,7 +103,6 @@ void loop() {
                 _mcu.preferences.clear();
                 _mcu.preferences.end();
                 _mcu.log("loop(): _mcu.delay(): _btn.onLongPress(): User preferences cleared.");
-                _mcu.log("loop(): _mcu.delay(): _btn.onLongPress(): Restarting device...");
                 _mcu.kill(true);
             });
         }

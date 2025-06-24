@@ -18,7 +18,7 @@ void RTC::calibrate(
     if (_isConnected()) {
         _mcu->log("RTC::calibrate(): Updating clock time...");
         _mcu->log("RTC::calibrate(): datetime: " + datetime);
-        _mcu->log("RTC::calibrate(): dayOfWeek: " + dayOfWeek);
+        _mcu->log("RTC::calibrate(): dayOfWeek: " + String(dayOfWeek));
         int dash1 = datetime.indexOf('-');
         int dash2 = datetime.indexOf('-', dash1 + 1);
         int tPos = datetime.indexOf('T');
@@ -133,7 +133,7 @@ void RTC::onTemperatureChange(
     std::function<void(float)> onChange
 ) {
     float currentTemperature = temperature();
-    if (fabs(currentTemperature - _oldTemperature) >= 1.0f) {
+    if (currentTemperature != _oldTemperature) {
         _oldTemperature = currentTemperature;
         _mcu->log("RTC::onTemperatureChange(): currentTemperature: " + String(currentTemperature));
         onChange(currentTemperature);
