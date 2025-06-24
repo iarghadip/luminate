@@ -15,7 +15,7 @@ void FAN::begin(
 void FAN::adjust(
     float temperature
 ) {
-    _mcu->log("FAN::adjust(): Adjusting fan speed...");
+    _mcu->log("FAN::adjust(): Updating fan speed...");
     float percentage = constrain((temperature - 25.0f) / 10.0f, 0.0f, 1.0f);
     uint32_t duty = static_cast<uint32_t>(percentage * 255.0f);
     _mcu->log("FAN::adjust(): temperature: " + String(temperature));

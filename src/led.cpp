@@ -5,13 +5,14 @@ LED::LED() {}
 void LED::begin(
     MCU* mcu
 ) {
+    _mcu = mcu;
+    _mcu->log("LED::begin(): Initializing LED...");
     pinMode(PIN_LED_COOL, OUTPUT);
     pinMode(PIN_LED_WARM, OUTPUT);
     ledcSetup(PWM_CHANNEL_LED_COOL, PWM_FREQUENCY, PWM_RESOLUTION_BITS);
     ledcSetup(PWM_CHANNEL_LED_WARM, PWM_FREQUENCY, PWM_RESOLUTION_BITS);
     ledcAttachPin(PIN_LED_COOL, PWM_CHANNEL_LED_COOL);
     ledcAttachPin(PIN_LED_WARM, PWM_CHANNEL_LED_WARM);
-    _mcu = mcu;
 }
 
 void LED::renderLumination(
@@ -23,6 +24,11 @@ void LED::renderLumination(
         abs(_oldWarmBrightness - warmLED)
     );
     if (totalSteps > 0) {
+        _mcu->log("LED::renderLumination(): Updating light lumination...");
+        _mcu->log("LED::renderLumination(): coolLED: " + String(coolLED));
+        _mcu->log("LED::renderLumination(): warmLED: " + String(warmLED));
+        _mcu->log("LED::renderLumination(): _oldCoolBrightness: " + String(_oldCoolBrightness));
+        _mcu->log("LED::renderLumination(): _oldWarmBrightness: " + String(_oldWarmBrightness));
         for (int currentStep = 0; currentStep <= totalSteps; currentStep++) {
             _luminate(
                 PWM_CHANNEL_LED_COOL,

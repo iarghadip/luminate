@@ -16,7 +16,7 @@ void RTC::calibrate(
     int dayOfWeek
 ) {
     if (_isConnected()) {
-        _mcu->log("RTC::calibrate(): Updating datetime and dayOfWeek...");
+        _mcu->log("RTC::calibrate(): Updating clock time...");
         _mcu->log("RTC::calibrate(): datetime: " + datetime);
         _mcu->log("RTC::calibrate(): dayOfWeek: " + dayOfWeek);
         int dash1 = datetime.indexOf('-');
