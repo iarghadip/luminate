@@ -26,21 +26,17 @@ void LED::renderLumination(
         for (int currentStep = 0; currentStep <= totalSteps; currentStep++) {
             _luminate(
                 PWM_CHANNEL_LED_COOL,
-                _lerp(
-                    _oldCoolBrightness,
-                    coolLED,
-                    currentStep,
-                    totalSteps
-                )
+                _oldCoolBrightness,
+                coolLED,
+                currentStep,
+                totalSteps
             );
             _luminate(
                 PWM_CHANNEL_LED_WARM,
-                _lerp(
-                    _oldWarmBrightness,
-                    warmLED,
-                    currentStep,
-                    totalSteps
-                )
+                _oldWarmBrightness,
+                warmLED,
+                currentStep,
+                totalSteps
             );
             delay(BRIGHTNESS_RENDER_INTERVAL);
         }
@@ -49,23 +45,23 @@ void LED::renderLumination(
     }
 }
 
-inline float LED::_lerp(
-    float from,
-    float to,
-    int step,
-    int steps
-) {
-    return from + (to - from) * ((float)step / steps);
-}
-
 void LED::_luminate(
-    int lightChannel,
-    float percentage
+    int pwmChannel,
+    float oldBrightness,
+    float newBrightness,
+    int currentStep,
+    int totalSteps
 ) {
     ledcWrite(
-        lightChannel,
-        static_cast<uint8_t>((
-            constrain(percentage, 0.0f, 100.0f) / 100.0f
-        ) * 255.0f)
+        pwmChannel,
+        static_cast<uint8_t>(
+            (constrain(
+                oldBrightness +
+                (newBrightness - oldBrightness) *
+                ((float)currentStep / totalSteps),
+                0.0f,
+                100.0f
+            ) / 100.0f) * 255.0f
+        )
     );
 }

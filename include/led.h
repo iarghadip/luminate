@@ -56,24 +56,6 @@ class LED {
         int _oldWarmBrightness; // Most recent brightness applied to the warm white LED.
 
         /**
-         * @brief Performs linear interpolation between two values.
-         * 
-         * Calculates an intermediate value between `from` and `to`, based on the current step.
-         * 
-         * @param from Starting value.
-         * @param to Target value.
-         * @param step Current step number (0-based).
-         * @param steps Total number of interpolation steps.
-         * @return Interpolated value as a float.
-         */
-        inline float _lerp(
-            float from,
-            float to,
-            int step,
-            int steps
-        );
-
-        /**
          * @brief Applies brightness to a given LED using PWM.
          * 
          * Converts the brightness percentage (0–100) into an 8-bit PWM value
@@ -83,8 +65,11 @@ class LED {
          * @param percentage Brightness percentage (0–100).
          */
         void _luminate(
-            int lightPin,
-            float percentage
+            int pwmChannel,
+            float oldBrightness,
+            float newBrightness,
+            int currentStep,
+            int totalSteps
         );
 };
 
