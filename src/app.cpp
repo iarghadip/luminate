@@ -171,23 +171,25 @@ void updateLED(
     while (true) {
         _mcu.delay(BRIGHTNESS_UPDATE_INTERVAL, []() {
             String sceneTime = _rtc.read(_rtc.TIME_ONLY);
-            int sceneBrightness = _dls.read(BRIGHTNESS_MINIMUM_PERCENT);
-            int hh = sceneTime.substring(0, 2).toInt();
-            int mm = sceneTime.substring(3, 5).toInt();
-            int ss = sceneTime.substring(6, 8).toInt();
-            int secondsSince00 = hh * 3600 + mm * 60 + ss;
-            int secondsSince06;
-            if (secondsSince00 >= 6 * 3600) {
-                secondsSince06 = secondsSince00 - 6 * 3600;
-            } else {
-                secondsSince06 = secondsSince00 + (24 * 3600) - 6 * 3600;
+            if (sceneTime != "NaN") {
+                int sceneBrightness = _dls.read(BRIGHTNESS_MINIMUM_PERCENT);
+                int hh = sceneTime.substring(0, 2).toInt();
+                int mm = sceneTime.substring(3, 5).toInt();
+                int ss = sceneTime.substring(6, 8).toInt();
+                int secondsSince00 = hh * 3600 + mm * 60 + ss;
+                int secondsSince06;
+                if (secondsSince00 >= 6 * 3600) {
+                    secondsSince06 = secondsSince00 - 6 * 3600;
+                } else {
+                    secondsSince06 = secondsSince00 + (24 * 3600) - 6 * 3600;
+                }
+                float percent = (secondsSince06 * 100.0) / (24 * 60 * 60);
+                if (percent < 0) percent = 0;
+                if (percent > 100) percent = 100;
+                int coolLED = ((100.0 - percent) / 100.0) * sceneBrightness;
+                int warmLED = (percent / 100.0) * sceneBrightness;
+                _led.renderLumination(coolLED, warmLED);
             }
-            float percent = (secondsSince06 * 100.0) / (24 * 60 * 60);
-            if (percent < 0) percent = 0;
-            if (percent > 100) percent = 100;
-            int coolLED = ((100.0 - percent) / 100.0) * sceneBrightness;
-            int warmLED = (percent / 100.0) * sceneBrightness;
-            _led.renderLumination(coolLED, warmLED);
         });
     }
 }
