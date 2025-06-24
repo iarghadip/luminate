@@ -20,7 +20,7 @@ void FAN::adjust(
     float percentage = constrain((temperature - 25.0f) / 10.0f, 0.0f, 1.0f);
     uint32_t duty = static_cast<uint32_t>(percentage * 255.0f);
     _mcu->log("FAN::adjust(): temperature: " + String(temperature));
-    _mcu->log("FAN::adjust(): percentage: " + String(percentage));
+    _mcu->log("FAN::adjust(): percentage: " + String(percentage * 100.0f));
     _mcu->log("FAN::adjust(): duty: " + String(duty));
     ledcWrite(PWM_CHANNEL_BLDC_FAN, duty);
     _mcu->log("FAN::adjust(): duty was updated.");
