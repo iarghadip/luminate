@@ -107,12 +107,12 @@ String MCU::getTime(
     struct tm timeinfo;
     time_t now = time(nullptr);
     localtime_r(&now, &timeinfo);
-    int sec   = constrain(timeinfo.tm_sec, 0, 59);
-    int min   = constrain(timeinfo.tm_min, 0, 59);
-    int hour  = constrain(timeinfo.tm_hour, 0, 23);
-    int day   = constrain(timeinfo.tm_mday, 1, 31);
+    int sec = constrain(timeinfo.tm_sec, 0, 59);
+    int min = constrain(timeinfo.tm_min, 0, 59);
+    int hour = constrain(timeinfo.tm_hour, 0, 23);
+    int day = constrain(timeinfo.tm_mday, 1, 31);
     int month = constrain(timeinfo.tm_mon + 1, 1, 12);
-    int year  = constrain(timeinfo.tm_year % 100, 0, 99);
+    int year = constrain(timeinfo.tm_year % 100, 0, 99);
     if (format == DATE_TIME || format == DATE_ONLY) {
         char date[11];
         snprintf(date, sizeof(date), "%02d/%02d/20%02d", day, month, year);
