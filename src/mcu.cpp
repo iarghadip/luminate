@@ -73,9 +73,9 @@ void MCU::log(
 ) {
     if (DEBUG_MODE_ENABLED) {
         Serial.println(
-            getTime() + " @ " + (
+            (success ? "" : "\033[31m") + getTime() + " @ " + (
                 success ? "Debug" : "Error"
-            ) + " -> " + message
+            ) + " -> " + message + (success ? "" : "\033[0m")
         );
     }
 }
