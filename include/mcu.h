@@ -21,6 +21,15 @@
  */
 class MCU {
     public:
+        /**
+         * @brief Enumeration for date/time formatting options.
+         */
+        enum Format {
+            DATE_TIME, ///< Output includes both date and time.
+            DATE_ONLY, ///< Output includes only the date.
+            TIME_ONLY  ///< Output includes only the time.
+        };
+
         Preferences preferences; // Preferences instance for persistent key-value storage.
         bool isUserInterrupt = false; // Tracks user button interrupt state.
 
@@ -47,22 +56,6 @@ class MCU {
         void log(
             String message,
             bool success = true
-        );
-
-        /**
-         * @brief Performs an HTTP GET request to the specified URL.
-         * 
-         * Optionally accepts a callback to handle the result.
-         * 
-         * @param url Target URL for the HTTP request.
-         * @param onSuccess Optional callback with signature: (success, HTTP status code, response body).
-         * @param requestBody JSON document to include in the request (if needed).
-         * @return true if request succeeded, false otherwise.
-         */
-        bool httpRequest(
-            String url,
-            std::function<void(bool, int, String)> onSuccess = {},
-            JsonDocument requestBody = JsonDocument()
         );
 
         /**
@@ -127,21 +120,39 @@ class MCU {
         );
 
         /**
-         * @brief Updates the internal timestamp with a new value.
+         * @brief Synchronizes the ESP32 internal RTC using an NTP server.
          * 
-         * Stores or replaces the current timestamp used for tracking or logging purposes.
+         * Connects to a predefined NTP server (e.g., pool.ntp.org) and sets the internal 
+         * system time using `configTime()` and `settimeofday()`. 
          * 
-         * @param timestamp A string representing the new timestamp.
+         * Requires an active Wi-Fi connection.
+         * 
+         * @return true if synchronization was successful, false on failure.
          */
-        void updateLogginTimestamp(
-            String timestamp
+        bool setTime();
+
+        /**
+         * @brief Retrieves the current date and/or time as a formatted string.
+         * 
+         * Returns the current time from the ESP32's internal RTC, formatted based on the selected mode.
+         * Supported formats include full date and time, date only, or time only.
+         * 
+         * Format:
+         * - DATE_TIME: "DD/MM/YYYY HH:MM:SS"
+         * - DATE_ONLY: "DD/MM/YYYY"
+         * - TIME_ONLY: "HH:MM:SS"
+         * 
+         * @param format Display format (DATE_TIME, DATE_ONLY, or TIME_ONLY).
+         * @return A formatted string, or "NaN" if the time is not available.
+         */
+        String getTime(
+            Format format = DATE_TIME
         );
 
     private:
         DNSServer _dns; // Internal DNS server for captive portal.
         HTTPClient _client; // HTTP client for outgoing requests.
         WebServer _server; // Web server for setup interface.
-        String _timestamp = "NaN"; // Stores the most recent timestamp as a string.
         int _standardRequestIntervalFactor = 1; // Multiplier for retry timing logic.
         bool _isServerRunning = false; // Indicates if setup interface server is running.
 

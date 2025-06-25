@@ -20,59 +20,17 @@ void MCU::log(
 ) {
     if (DEBUG_MODE_ENABLED) {
         Serial.println(
-            _timestamp + " @ " + (
+            getTime() + " @ " + (
                 success ? "Debug" : "Error"
             ) + " -> " + message
         );
     }
 }
 
-bool MCU::httpRequest(
-    String url,
-    std::function<void(bool, int, String)> onSuccess,
-    JsonDocument requestBody
-) {
-    log("MCU::httpRequest(): url: " + url);
-    if (WiFi.status() == WL_CONNECTED) {
-        int httpCode;
-        bool isSuccess;
-        _client.begin(url);
-        _client.setReuse(true);
-        _client.setTimeout(HTTP_REQUEST_TIMEOUT);
-        _client.addHeader("User-Agent", "ESP32HTTPClient");
-        if (requestBody.isNull()) {
-            httpCode = _client.GET();
-            isSuccess = httpCode == HTTP_CODE_OK;
-            log("MCU::httpRequest(): Requested in GET method.");
-        } else {
-            String requestString;
-            serializeJson(requestBody, requestString);
-            _client.addHeader("Content-Type", "application/json");
-            httpCode = _client.POST(requestString);
-            isSuccess = httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_FOUND || httpCode == HTTPC_ERROR_READ_TIMEOUT;
-            log("MCU::httpRequest(): Requested in POST method.");
-            log("MCU::httpRequest(): requestString: " + requestString);
-        }
-        String response = _client.getString();
-        _client.end();
-        log("MCU::httpRequest(): Response fully received and client closed.");
-        log("MCU::httpRequest(): isSuccess: " + _sBool(isSuccess), isSuccess);
-        log("MCU::httpRequest(): httpCode: " + String(httpCode));
-        log("MCU::httpRequest(): response: " + response);
-        _setStandardRequestIntervalFactor(isSuccess);
-        onSuccess(isSuccess, httpCode, response);
-        return isSuccess;
-    }
-    log("MCU::httpRequest(): Failed because WiFi is not connected.", false);
-    _setStandardRequestIntervalFactor(false);
-    _reConnect();
-    onSuccess(false, 0, "");
-    return false;
-}
-
 int MCU::getTimeUpdateInterval(
     bool isSuccess
 ) {
+    _setStandardRequestIntervalFactor(isSuccess);
     if (isSuccess) return TIME_UPDATE_INTERVAL;
     return _standardRequestIntervalFactor * HTTP_REQUEST_INTERVAL;
 }
@@ -130,10 +88,43 @@ void MCU::kill(
     }
 }
 
-void MCU::updateLogginTimestamp(
-    String timestamp
+bool MCU::setTime() {
+    log("MCU::setTime(): Updating clock time...");
+    configTime(19800, 0, "pool.ntp.org", "time.nist.gov");
+    struct tm timeinfo;
+    if (!getLocalTime(&timeinfo)) {
+        log("MCU::setTime(): Failed to update clock!", false);
+        return false;
+    }
+    log("MCU::setTime(): Clock was updated.");
+    return true;
+}
+
+String MCU::getTime(
+    Format format
 ) {
-    _timestamp = timestamp;
+    String buffer = "";
+    struct tm timeinfo;
+    time_t now = time(nullptr);
+    localtime_r(&now, &timeinfo);
+    int sec   = constrain(timeinfo.tm_sec, 0, 59);
+    int min   = constrain(timeinfo.tm_min, 0, 59);
+    int hour  = constrain(timeinfo.tm_hour, 0, 23);
+    int day   = constrain(timeinfo.tm_mday, 1, 31);
+    int month = constrain(timeinfo.tm_mon + 1, 1, 12);
+    int year  = constrain(timeinfo.tm_year % 100, 0, 99);
+    if (format == DATE_TIME || format == DATE_ONLY) {
+        char date[11];
+        snprintf(date, sizeof(date), "%02d/%02d/20%02d", day, month, year);
+        buffer += date;
+        if (format == DATE_TIME) buffer += " ";
+    }
+    if (format == DATE_TIME || format == TIME_ONLY) {
+        char time[9];
+        snprintf(time, sizeof(time), "%02d:%02d:%02d", hour, min, sec);
+        buffer += time;
+    }
+    return buffer;
 }
 
 void MCU::_setStandardRequestIntervalFactor(
