@@ -109,9 +109,9 @@ void loop() {
         _dls.onBrightnessChange([](float brightness) {
             // Nothing to do yet
         });
-        _rtc.onTemperatureChange([](float temperature) {
-            _fan.adjust(temperature);
-        });
+        // _rtc.onTemperatureChange([](float temperature) {
+        //     _fan.adjust(temperature);
+        // });
     });
 }
 
