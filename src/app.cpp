@@ -11,6 +11,19 @@ FAN _fan;
 LED _led;
 
 /**
+ * @brief Periodically updates the RTC module with time from the internet.
+ * 
+ * This FreeRTOS task repeatedly makes HTTP requests to a configured time server.
+ * If the response is valid, it calibrates the RTC with the updated datetime and day.
+ * If the request fails, the function waits for a fallback interval before retrying.
+ * 
+ * @param arguments Unused (standard for FreeRTOS task signatures).
+ */
+void updateRTC(
+    void* arguments
+);
+
+/**
  * @brief Task function to handle changes in WiFi connection status with LED feedback.
  * 
  * This function runs indefinitely in a loop, using `_mcu.delay()` to periodically
@@ -48,19 +61,6 @@ void updateLED(
 );
 
 /**
- * @brief Periodically updates the RTC module with time from the internet.
- * 
- * This FreeRTOS task repeatedly makes HTTP requests to a configured time server.
- * If the response is valid, it calibrates the RTC with the updated datetime and day.
- * If the request fails, the function waits for a fallback interval before retrying.
- * 
- * @param arguments Unused (standard for FreeRTOS task signatures).
- */
-void updateRTC(
-    void* arguments
-);
-
-/**
  * @brief Initializes the system.
  *
  * Prepares all core components and schedules periodic tasks.
@@ -73,9 +73,9 @@ void setup() {
     _fan.begin(&_mcu);
     _led.begin(&_mcu);
     _mcu.log("setup(): Welcome to " + String(FIRMWARE_NAME) + " (" + String(FIRMWARE_VERSION) + ").");
+    _mcu.assign(1, updateRTC);
     _mcu.assign(1, updateWSL);
     _mcu.assign(1, updateLED);
-    _mcu.assign(1, updateRTC);
 }
 
 /**
@@ -110,6 +110,18 @@ void loop() {
     });
 }
 
+void updateRTC(
+    void* arguments
+) {
+    while (true) {
+        _mcu.delay(
+            _mcu.getTimeUpdateInterval(
+                _mcu.setTime()
+            )
+        );
+    }
+}
+
 void updateWSL(
     void* arguments
 ) {
@@ -137,37 +149,23 @@ void updateLED(
     while (true) {
         _mcu.delay(BRIGHTNESS_UPDATE_INTERVAL, []() {
             String sceneTime = _mcu.getTime(_mcu.TIME_ONLY);
-            if (sceneTime != "NaN") {
-                int sceneBrightness = _dls.read(BRIGHTNESS_MINIMUM_PERCENT);
-                int hh = sceneTime.substring(0, 2).toInt();
-                int mm = sceneTime.substring(3, 5).toInt();
-                int ss = sceneTime.substring(6, 8).toInt();
-                int secondsSince00 = hh * 3600 + mm * 60 + ss;
-                int secondsSince06;
-                if (secondsSince00 >= 6 * 3600) {
-                    secondsSince06 = secondsSince00 - 6 * 3600;
-                } else {
-                    secondsSince06 = secondsSince00 + (24 * 3600) - 6 * 3600;
-                }
-                float percent = (secondsSince06 * 100.0) / (24 * 60 * 60);
-                if (percent < 0) percent = 0;
-                if (percent > 100) percent = 100;
-                int coolLED = ((100.0 - percent) / 100.0) * sceneBrightness;
-                int warmLED = (percent / 100.0) * sceneBrightness;
-                _led.renderLumination(coolLED, warmLED);
+            int sceneBrightness = _dls.read(BRIGHTNESS_MINIMUM_PERCENT);
+            int hh = sceneTime.substring(0, 2).toInt();
+            int mm = sceneTime.substring(3, 5).toInt();
+            int ss = sceneTime.substring(6, 8).toInt();
+            int secondsSince00 = hh * 3600 + mm * 60 + ss;
+            int secondsSince06;
+            if (secondsSince00 >= 6 * 3600) {
+                secondsSince06 = secondsSince00 - 6 * 3600;
+            } else {
+                secondsSince06 = secondsSince00 + (24 * 3600) - 6 * 3600;
             }
+            float percent = (secondsSince06 * 100.0) / (24 * 60 * 60);
+            if (percent < 0) percent = 0;
+            if (percent > 100) percent = 100;
+            int coolLED = ((100.0 - percent) / 100.0) * sceneBrightness;
+            int warmLED = (percent / 100.0) * sceneBrightness;
+            _led.renderLumination(coolLED, warmLED);
         });
-    }
-}
-
-void updateRTC(
-    void* arguments
-) {
-    while (true) {
-        _mcu.delay(
-            _mcu.getTimeUpdateInterval(
-                _mcu.setTime()
-            )
-        );
     }
 }
