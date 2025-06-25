@@ -14,27 +14,6 @@ void MCU::begin() {
     }
 }
 
-void MCU::log(
-    String message,
-    bool success
-) {
-    if (DEBUG_MODE_ENABLED) {
-        Serial.println(
-            getTime() + " @ " + (
-                success ? "Debug" : "Error"
-            ) + " -> " + message
-        );
-    }
-}
-
-int MCU::getTimeUpdateInterval(
-    bool isSuccess
-) {
-    _setStandardRequestIntervalFactor(isSuccess);
-    if (isSuccess) return TIME_UPDATE_INTERVAL;
-    return _standardRequestIntervalFactor * HTTP_REQUEST_INTERVAL;
-}
-
 void MCU::setWLED(
     uint8_t value
 ) {
@@ -88,6 +67,19 @@ void MCU::kill(
     }
 }
 
+void MCU::log(
+    String message,
+    bool success
+) {
+    if (DEBUG_MODE_ENABLED) {
+        Serial.println(
+            getTime() + " @ " + (
+                success ? "Debug" : "Error"
+            ) + " -> " + message
+        );
+    }
+}
+
 bool MCU::setTime() {
     log("MCU::setTime(): Updating clock time...");
     configTime(19800, 0, "pool.ntp.org", "time.nist.gov");
@@ -96,6 +88,7 @@ bool MCU::setTime() {
         log("MCU::setTime(): Failed to update clock!", false);
         return false;
     }
+    isTimeUpdated = true;
     log("MCU::setTime(): Clock was updated.");
     return true;
 }
@@ -125,6 +118,14 @@ String MCU::getTime(
         buffer += time;
     }
     return buffer;
+}
+
+int MCU::getTimeUpdateInterval(
+    bool isSuccess
+) {
+    _setStandardRequestIntervalFactor(isSuccess);
+    if (isSuccess) return TIME_UPDATE_INTERVAL;
+    return _standardRequestIntervalFactor * HTTP_REQUEST_INTERVAL;
 }
 
 void MCU::_setStandardRequestIntervalFactor(

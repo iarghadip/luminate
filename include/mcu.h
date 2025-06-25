@@ -32,6 +32,7 @@ class MCU {
 
         Preferences preferences; // Preferences instance for persistent key-value storage.
         bool isUserInterrupt = false; // Tracks user button interrupt state.
+        bool isTimeUpdated = false; // Indicates if clock time is up to date.
 
         /**
          * @brief Constructs an MCU object.
