@@ -21,5 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor environment variable changes.
 - Minor app.cpp algorithm changes.
 - Optimized HTML for better performance.
+- Moved time to internal RTC of ESP32.
 
 [v1.0.0]: https://github.com/iarghadip/luminate/compare/3ce85df...v1.0.0
