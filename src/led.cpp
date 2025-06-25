@@ -13,6 +13,7 @@ void LED::begin(
     ledcSetup(PWM_CHANNEL_LED_WARM, PWM_FREQUENCY, PWM_RESOLUTION_BITS);
     ledcAttachPin(PIN_LED_COOL, PWM_CHANNEL_LED_COOL);
     ledcAttachPin(PIN_LED_WARM, PWM_CHANNEL_LED_WARM);
+    renderLumination(0.0f, 0.0f);
 }
 
 void LED::renderLumination(
