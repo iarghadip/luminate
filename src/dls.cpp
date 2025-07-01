@@ -8,20 +8,9 @@ void DLS::begin(
     _mcu = mcu;
     _mcu->log("DLS::begin(): Initializing DLS...");
     Wire.begin();
-    Wire.beginTransmission(0x23);
-    Wire.write(0x01);
-    Wire.endTransmission();
-    delay(10);
-    Wire.beginTransmission(0x23);
-    Wire.write((0b01000 << 3) | (69 >> 5));
-    Wire.endTransmission();
-    Wire.beginTransmission(0x23);
-    Wire.write((0b011 << 5) | (69 & 0b11111));
-    Wire.endTransmission();
-    Wire.beginTransmission(0x23);
-    Wire.write(0x10);
-    Wire.endTransmission();
-    delay(10);
+    _sendCommand(0x00);
+    _sendCommand(0x01);
+    _sendCommand(0x10);
     _isConnected();
 }
 
@@ -66,4 +55,13 @@ bool DLS::_isConnected() {
         return false;
     }
     return true;
+}
+
+void DLS::_sendCommand(
+    uint8_t command
+) {
+    Wire.beginTransmission(0x23);
+    Wire.write(command);
+    Wire.endTransmission();
+    delay(10);
 }

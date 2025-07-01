@@ -73,6 +73,18 @@ class DLS {
          * @return false if the device is not connected or not responding.
          */
         bool _isConnected();
+
+        /**
+         * @brief Sends a single command to the digital light sensor over I2C.
+         * 
+         * Initiates an I2C transmission to the sensor at address 0x23, writes the specified command byte,
+         * and ends the transmission. This function does not introduce any delay after sending the command.
+         * 
+         * @param command The command byte to send to the sensor.
+         */
+        void _sendCommand(
+            uint8_t command
+        );
 };
 
 #endif // dls_h
