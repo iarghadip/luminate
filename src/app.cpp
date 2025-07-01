@@ -1,12 +1,14 @@
 #include <mcu.h>
 #include <btn.h>
 #include <dls.h>
+#include <dts.h>
 #include <fan.h>
 #include <led.h>
 
 MCU _mcu;
 BTN _btn;
 DLS _dls;
+DTS _dts;
 FAN _fan;
 LED _led;
 
@@ -70,6 +72,7 @@ void setup() {
     _mcu.begin();
     _btn.begin(&_mcu);
     _dls.begin(&_mcu);
+    _dts.begin(&_mcu);
     _fan.begin(&_mcu);
     _led.begin(&_mcu);
     _mcu.log("setup(): Welcome to " + String(FIRMWARE_NAME) + " (" + String(FIRMWARE_VERSION) + ").");
@@ -104,9 +107,9 @@ void loop() {
         _dls.onBrightnessChange([](float brightness) {
             // Nothing to do yet
         });
-        // _rtc.onTemperatureChange([](float temperature) {
-        //     _fan.adjust(temperature);
-        // });
+        _dts.onTemperatureChange([](float temperature) {
+            _fan.adjust(temperature);
+        });
     });
 }
 
