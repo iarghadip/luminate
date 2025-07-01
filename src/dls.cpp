@@ -22,17 +22,18 @@ float DLS::read(
         if (current - _lastRead < 120) {
             return _oldBrightness;
         }
-        float lux = -1.0f;
+        float brightness = -1.0f;
         if (Wire.requestFrom((int)0x23, 2) == 2 && Wire.available() >= 2) {
             uint16_t level = Wire.read();
             level <<= 8;
             level |= Wire.read();
-            lux = level / 1.2f;
+            brightness = level / 1.2f;
         } else {
             _mcu->log("DLS::read(): Wire response size invalid!", false);
         }
         _lastRead = current;
-        return constrain(lux, minimumBrightness, 100.0f);
+        _oldBrightness = brightness;
+        return constrain(brightness, minimumBrightness, 100.0f);
     }
     return 0.0f;
 }
