@@ -73,6 +73,22 @@ class DTS {
          * @return false if the device is not connected or not responding.
          */
         bool _isConnected();
+
+        /**
+         * @brief Sends a register address or command byte to the DTS temperature sensor over I2C.
+         *
+         * This function begins an I2C transmission to the device at address 0x48,
+         * writes a single byte (typically the register address to be read from),
+         * and ends the transmission without a repeated start.
+         *
+         * It is typically used to select the temperature register (0x00) before initiating a read.
+         *
+         * @param command The register address or command byte to send to the sensor.
+         * @return true if the transmission was acknowledged by the sensor; false otherwise.
+         */
+        bool _sendCommand(
+            uint8_t command
+        );
 };
 
 #endif // dts_h

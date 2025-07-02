@@ -45,7 +45,7 @@ void LED::renderLumination(
                 currentStep,
                 totalSteps
             );
-            delay(BRIGHTNESS_RENDER_INTERVAL);
+            delay(GENERAL_SIO_INTERVAL);
         }
         _oldCoolBrightness = coolLED;
         _oldWarmBrightness = warmLED;

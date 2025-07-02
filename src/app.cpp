@@ -88,7 +88,7 @@ void setup() {
  * and logging at regular intervals.
  */
 void loop() {
-    _mcu.delay(MAIN_LOOP_INTERVAL, []() {
+    _mcu.delay(GENERAL_SIO_INTERVAL, []() {
         if (!_mcu.isUserInterrupt) {
             _btn.onSinglePress([]() {
                 _mcu.isUserInterrupt = true;
@@ -130,7 +130,7 @@ void updateWSL(
 ) {
     _mcu.log("updateWSL(): Waiting for WiFi connection...");
     while (true) {
-        _mcu.delay(WIFI_LED_BLINK_INTERVAL, []() {
+        _mcu.delay(GENERAL_MIO_INTERVAL, []() {
             if (WiFi.status() == WL_CONNECTED) {
                 _mcu.log("updateWSL(): _mcu.delay(): Connected to WiFi.");
                 _mcu.setWLED(HIGH);
@@ -140,7 +140,7 @@ void updateWSL(
                 _mcu.setWLED(LOW);
                 _mcu.kill();
             } else {
-                _mcu.setWLED((((millis() / WIFI_LED_BLINK_INTERVAL) % 2) == 0) ? HIGH : LOW);
+                _mcu.setWLED((((millis() / GENERAL_MIO_INTERVAL) % 2) == 0) ? HIGH : LOW);
             }
         });
     }

@@ -16,29 +16,24 @@ float DTS::read(
 ) {
     if (_isConnected()) {
         unsigned long current = millis();
-        if (current - _lastRead < 120) {
+        if (current - _lastRead < GENERAL_MIO_INTERVAL) {
             return _oldTemperature;
         }
-        float temperature = -100.0f;
-        Wire.beginTransmission(0x48);
-        Wire.write(0x00);
-        if (Wire.endTransmission(false) == 0) {
+        float temperature = _oldTemperature;
+        if (_sendCommand(0x00)) {
             if (Wire.requestFrom(0x48, 2) == 2 && Wire.available() >= 2) {
                 uint8_t msb = Wire.read();
                 uint8_t lsb = Wire.read();
-                int16_t raw = (msb << 8) | lsb;
-                temperature = (float)raw / 256.0f;
+                int16_t raw = ((int16_t)msb << 8) | lsb;
+                temperature = (raw >> 7) * 0.5f;
             } else {
                 _mcu->log("DTS::read(): Wire response size invalid!", false);
             }
-        } else {
-            _mcu->log("DTS::read(): I2C transmission failed!", false);
         }
         _lastRead = current;
-        _oldTemperature = temperature;
         return constrain(temperature, minimumTemperature, 100.0f);
     }
-    return 0.0f;
+    return _oldTemperature;
 }
 
 void DTS::onTemperatureChange(
@@ -59,4 +54,16 @@ bool DTS::_isConnected() {
         return false;
     }
     return true;
+}
+
+bool DTS::_sendCommand(
+    uint8_t command
+) {
+    Wire.beginTransmission(0x48);
+    Wire.write(command);
+    bool status = Wire.endTransmission() == 0;
+    if (!status) {
+        _mcu->log("DTS::_sendCommand(): I2C transmission failed!", false);
+    }
+    return status;
 }
