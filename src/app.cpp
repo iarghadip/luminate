@@ -1,12 +1,14 @@
 #include <mcu.h>
 #include <btn.h>
 #include <dls.h>
+#include <dts.h>
 #include <fan.h>
 #include <led.h>
 
 MCU _mcu;
 BTN _btn;
 DLS _dls;
+DTS _dts;
 FAN _fan;
 LED _led;
 
@@ -70,6 +72,7 @@ void setup() {
     _mcu.begin();
     _btn.begin(&_mcu);
     _dls.begin(&_mcu);
+    _dts.begin(&_mcu);
     _fan.begin(&_mcu);
     _led.begin(&_mcu);
     _mcu.log("setup(): Welcome to " + String(FIRMWARE_NAME) + " (" + String(FIRMWARE_VERSION) + ").");
@@ -85,7 +88,7 @@ void setup() {
  * and logging at regular intervals.
  */
 void loop() {
-    _mcu.delay(MAIN_LOOP_INTERVAL, []() {
+    _mcu.delay(GENERAL_SIO_INTERVAL, []() {
         if (!_mcu.isUserInterrupt) {
             _btn.onSinglePress([]() {
                 _mcu.isUserInterrupt = true;
@@ -104,9 +107,9 @@ void loop() {
         _dls.onBrightnessChange([](float brightness) {
             // Nothing to do yet
         });
-        // _rtc.onTemperatureChange([](float temperature) {
-        //     _fan.adjust(temperature);
-        // });
+        _dts.onTemperatureChange([](float temperature) {
+            _fan.adjust(temperature);
+        });
     });
 }
 
@@ -127,7 +130,7 @@ void updateWSL(
 ) {
     _mcu.log("updateWSL(): Waiting for WiFi connection...");
     while (true) {
-        _mcu.delay(WIFI_LED_BLINK_INTERVAL, []() {
+        _mcu.delay(GENERAL_MIO_INTERVAL, []() {
             if (WiFi.status() == WL_CONNECTED) {
                 _mcu.log("updateWSL(): _mcu.delay(): Connected to WiFi.");
                 _mcu.setWLED(HIGH);
@@ -137,7 +140,7 @@ void updateWSL(
                 _mcu.setWLED(LOW);
                 _mcu.kill();
             } else {
-                _mcu.setWLED((((millis() / WIFI_LED_BLINK_INTERVAL) % 2) == 0) ? HIGH : LOW);
+                _mcu.setWLED((((millis() / GENERAL_MIO_INTERVAL) % 2) == 0) ? HIGH : LOW);
             }
         });
     }
