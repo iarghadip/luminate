@@ -45,7 +45,7 @@ echo
 
 if [ ! -f "$DIR/../$ENV" ]; then
     echo "> Created: $ENV"
-    cp "$DIR/../$ENV.example" "$DIR/../$ENV"
+    cp "$DIR/example.ini" "$DIR/../$ENV"
 fi
 
 for item in "$DIR/../web"/*; do

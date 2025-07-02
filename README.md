@@ -5,8 +5,8 @@
 Luminate is a PlatformIO-based dual-tone white LED driver that smoothly fades lighting from cool white to warm white as the day goes by.
 
 - Uses PWM to control the LEDs brightness.
-- Uses PWM to adjust the cooling FANs speed.
 - Uses DLS to calculate the LEDs net brightness.
+- Uses DTS to adjust the cooling FANs speed.
 - Uses RTC to calculate the LEDs color ratio.
 - Uses RTC to calculate the cooling FAN speed.
 
