@@ -7,9 +7,12 @@ BLU='\033[0;34m'
 BLD='\033[1m'
 RST='\033[0m'
 
-ENV_FILE="platformio.ini"
-PIO_HOME=~/.platformio/penv/bin/platformio
-SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+BFS=false
+BFW=false
+
+ENV="platformio.ini"
+PIO=~/.platformio/penv/bin/platformio
+DIR=$(dirname "$(readlink -f "$0")")
 
 if [ ! -t 0 ]; then
     echo
@@ -20,7 +23,7 @@ if [ ! -t 0 ]; then
 fi
 
 function connected {
-    $PIO_HOME device list | grep -q "/dev/ttyUSB"
+    $PIO device list | grep -q "/dev/ttyUSB"
 }
 
 function minify {
@@ -34,18 +37,18 @@ function minify {
         --use-short-doctype \
         --minify-css true \
         --minify-js true \
-        "$1" -o "$SCRIPT_DIR/../data/$(basename "$1")"
+        "$1" -o "$DIR/../data/$(basename "$1")"
     echo "> Compressed: $(basename "$1")"
 }
 
 echo
 
-if [ ! -f "$SCRIPT_DIR/../$ENV_FILE" ]; then
-    echo "> Created: $ENV_FILE"
-    cp "$SCRIPT_DIR/../$ENV_FILE.example" "$SCRIPT_DIR/../$ENV_FILE"
+if [ ! -f "$DIR/../$ENV" ]; then
+    echo "> Created: $ENV"
+    cp "$DIR/../$ENV.example" "$DIR/../$ENV"
 fi
 
-for item in "$SCRIPT_DIR/../web"/*; do
+for item in "$DIR/../web"/*; do
     minify "$item" &
 done
 
@@ -54,20 +57,28 @@ wait
 for arg in "$@"; do
     case "$arg" in
         -fs|--filesystem)
-            echo
-            $PIO_HOME run --target buildfs --environment esp32dev
-            if connected; then
+            if [ "$BFS" = false ]; then
+                BFS=true
                 echo
-                $PIO_HOME run --target uploadfs --environment esp32dev
+                $PIO run --target buildfs --environment esp32dev
+                if connected; then
+                    echo
+                    $PIO run --target uploadfs --environment esp32dev
+                fi
             fi
+            continue
             ;;
         -fw|--firmware)
-            echo
-            $PIO_HOME run --environment esp32dev
-            if connected; then
+            if [ "$BFW" = false ]; then
+                BFW=true
                 echo
-                $PIO_HOME run --target upload --environment esp32dev
+                $PIO run --environment esp32dev
+                if connected; then
+                    echo
+                    $PIO run --target upload --environment esp32dev
+                fi
             fi
+            continue
             ;;
         -h|--help)
             echo
@@ -78,7 +89,7 @@ for arg in "$@"; do
                 /^Examples:/   {print BLD BLU $0 RST; next}
                 /^[[:space:]]+-[a-z]/ {sub(/^([[:space:]]+-[a-z, ]+)/, YEL "&" RST); print; next}
                 {print}
-            ' "$SCRIPT_DIR/help.txt"
+            ' "$DIR/help.txt"
             echo
             exit 0
             ;;
