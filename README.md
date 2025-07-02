@@ -30,11 +30,9 @@ Follow these steps to setup the project:
 
 1. VS Code > PlatformIO > Open Project > Luminate.
 
-2. Menu > Terminal > New Terminal > `./scripts/build.sh` > <kbd>Return</kbd>/<kbd>Enter</kbd>.
+2. Menu > Terminal > New Terminal.
 
-3. PlatformIO > Project Tasks > esp32dev > General > Upload.
-
-4. PlatformIO > Project Tasks > esp32dev > Platform > Upload Filesystem Image.
+3. Execute `./scripts/build.sh -fs -fw`.
 
 ## Documentation
 
