@@ -19,10 +19,10 @@ float DLS::read(
 ) {
     if (_isConnected()) {
         unsigned long current = millis();
-        if (current - _lastRead < 120) {
+        if (current - _lastRead < GENERAL_MIO_INTERVAL) {
             return _oldBrightness;
         }
-        float brightness = -1.0f;
+        float brightness = _oldBrightness;
         if (Wire.requestFrom((int)0x23, 2) == 2 && Wire.available() >= 2) {
             uint16_t level = Wire.read();
             level <<= 8;
@@ -32,10 +32,9 @@ float DLS::read(
             _mcu->log("DLS::read(): Wire response size invalid!", false);
         }
         _lastRead = current;
-        _oldBrightness = brightness;
         return constrain(brightness, minimumBrightness, 100.0f);
     }
-    return 0.0f;
+    return _oldBrightness;
 }
 
 void DLS::onBrightnessChange(
@@ -58,11 +57,14 @@ bool DLS::_isConnected() {
     return true;
 }
 
-void DLS::_sendCommand(
+bool DLS::_sendCommand(
     uint8_t command
 ) {
     Wire.beginTransmission(0x23);
     Wire.write(command);
-    Wire.endTransmission();
-    delay(10);
+    bool status = Wire.endTransmission() == 0;
+    if (!status) {
+        _mcu->log("DLS::_sendCommand(): I2C transmission failed!", false);
+    }
+    return status;
 }
