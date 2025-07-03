@@ -6,12 +6,13 @@ void MCU::begin() {
     Serial.begin(DEBUG_FREQUENCY);
     Serial.println();
     log("MCU::begin(): Initializing MCU...");
-    pinMode(PIN_LED_WIFI, OUTPUT);
-    preferences.begin(FIRMWARE_NAME, false);
-    _reConnect();
     if(!SPIFFS.begin(true)) {
         log("MCU::begin(): Failed to start SPIFS!", false);
     }
+    pinMode(PIN_LED_WIFI, OUTPUT);
+    preferences.begin(FIRMWARE_NAME, false);
+    _updatePreferences();
+    _updateConnection();
 }
 
 void MCU::setWLED(
@@ -146,16 +147,16 @@ void MCU::_setStandardRequestIntervalFactor(
     log("MCU::_setStandardRequestInterval(): decrease: " + _sBool(decrease));
 }
 
-void MCU::_reConnect() {
-    if (preferences.isKey(KEY_WIFI_SSID) && preferences.isKey(KEY_WIFI_PASSWORD)) {
-        log("MCU::_reConnect(): WiFi will be connected to \"" + preferences.getString(KEY_WIFI_SSID) + "\" network.");
+void MCU::_updateConnection() {
+    if (preferences.getBool(KEY_SETUP_COMPLETED)) {
+        log("MCU::_updateConnection(): WiFi will be connected to \"" + preferences.getString(KEY_WIFI_SSID) + "\" network.");
         WiFi.begin(
             preferences.getString(KEY_WIFI_SSID),
             preferences.getString(KEY_WIFI_PASSWORD)
         );
-    } else if (!_isServerRunning) {
-        log("MCU::_reConnect(): WiFi credentials not found!", false);
-        log("MCU::_reConnect(): Starting setup interface server...");
+    } else {
+        log("MCU::_updateConnection(): WiFi credentials not found!", false);
+        log("MCU::_updateConnection(): Starting setup interface server...");
         _startSetupInterfaceServer();
         assign(1, [](void* arguments) {
             while (true) {
@@ -166,8 +167,18 @@ void MCU::_reConnect() {
                 });
             }
         }, this);
-    } else {
-        log("MCU::_reConnect(): Waiting for the user to configure the device...");
+    }
+}
+
+void MCU::_updatePreferences() {
+    if (preferences.getBool(KEY_SETUP_COMPLETED)) {
+        brightnessCycle = preferences.getInt(KEY_BRIGHTNESS_CYCLE);
+        if (preferences.getBool(KEY_BRIGHTNESS_INHERIT)) {
+            isBrightnessInherit = true;
+            brightnessMinimum = preferences.getInt(
+                KEY_BRIGHTNESS_MINIMUM
+            );
+        }
     }
 }
 
@@ -196,9 +207,12 @@ String MCU::_getHTML(
     file.close();
     log("MCU::_getHTML(): Successfully loaded setup HTML.");
     body.replace("{SETUP_INTERFACE_TITLE}", title);
+    body.replace("{FIRMWARE_VERSION}", FIRMWARE_VERSION);
     body.replace("{KEY_WIFI_SSID}", KEY_WIFI_SSID);
     body.replace("{KEY_WIFI_PASSWORD}", KEY_WIFI_PASSWORD);
-    body.replace("{FIRMWARE_VERSION}", FIRMWARE_VERSION);
+    body.replace("{KEY_BRIGHTNESS_CYCLE}", KEY_BRIGHTNESS_CYCLE);
+    body.replace("{KEY_BRIGHTNESS_INHERIT}", KEY_BRIGHTNESS_INHERIT);
+    body.replace("{KEY_BRIGHTNESS_MINIMUM}", KEY_BRIGHTNESS_MINIMUM);
     return body;
 }
 
@@ -230,24 +244,33 @@ void MCU::_startSetupInterfaceServer() {
     _server.onNotFound([this, name]() {
         _server.send(200, "text/html", _getHTML(name));
     });
-    _server.on("/wifi/save", HTTP_POST, [this]() {
+    _server.on("/setup/save", HTTP_POST, [this]() {
         if (_server.hasArg(KEY_WIFI_SSID) && _server.hasArg(KEY_WIFI_PASSWORD)) {
             String ssid = _server.arg(KEY_WIFI_SSID);
             String password = _server.arg(KEY_WIFI_PASSWORD);
-            log("MCU::_startSetupInterfaceServer(): _server.on(\"/wifi/save\"): Saving WiFi credentials...");
-            log("MCU::_startSetupInterfaceServer(): _server.on(\"/wifi/save\"): ssid: " + ssid);
-            log("MCU::_startSetupInterfaceServer(): _server.on(\"/wifi/save\"): password: " + password);
+            String bCycle = _server.arg(KEY_BRIGHTNESS_CYCLE);
+            String bInherit = _server.arg(KEY_BRIGHTNESS_INHERIT);
+            String bMinimum = _server.arg(KEY_BRIGHTNESS_MINIMUM);
+            log("MCU::_startSetupInterfaceServer(): _server.on(\"/setup/save\"): Saving WiFi credentials...");
+            log("MCU::_startSetupInterfaceServer(): _server.on(\"/setup/save\"): ssid: " + ssid);
+            log("MCU::_startSetupInterfaceServer(): _server.on(\"/setup/save\"): password: " + password);
+            log("MCU::_startSetupInterfaceServer(): _server.on(\"/setup/save\"): bCycle: " + bCycle);
+            log("MCU::_startSetupInterfaceServer(): _server.on(\"/setup/save\"): bInherit: " + bInherit);
+            log("MCU::_startSetupInterfaceServer(): _server.on(\"/setup/save\"): bMinimum: " + bMinimum);
             preferences.putString(KEY_WIFI_SSID, ssid);
             preferences.putString(KEY_WIFI_PASSWORD, password);
+            preferences.putInt(KEY_BRIGHTNESS_CYCLE, bCycle.toInt());
+            preferences.putBool(KEY_BRIGHTNESS_INHERIT, bInherit == "true");
+            preferences.putFloat(KEY_BRIGHTNESS_MINIMUM, bMinimum.toFloat());
+            preferences.putBool(KEY_SETUP_COMPLETED, true);
             _server.send(200, "application/json", _getJSON(true));
             kill(true);
         } else {
-            log("MCU::_startSetupInterfaceServer(): _server.on(\"/wifi/save\"): Missing required parameters.");
+            log("MCU::_startSetupInterfaceServer(): _server.on(\"/setup/save\"): Missing required parameters.");
             _server.send(400, "application/json", _getJSON(false, "Missing required parameters!"));
         }
     });
     _server.begin();
-    _isServerRunning = true;
     log("MCU::_startSetupInterfaceServer(): AP started with SSID.");
     log("MCU::_startSetupInterfaceServer(): name: " + name);
     log("MCU::_startSetupInterfaceServer(): DNS and server routes configured.");

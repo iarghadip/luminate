@@ -33,6 +33,9 @@ class MCU {
         Preferences preferences; // Preferences instance for persistent key-value storage.
         bool isUserInterrupt = false; // Tracks user button interrupt state.
         bool isTimeUpdated = false; // Indicates if clock time is up to date.
+        int brightnessCycle = 6; // Preferences instance for persistent key-value storage.
+        bool isBrightnessInherit = false; // Tracks user button interrupt state.
+        float brightnessMinimum = 5.0f; // Indicates if clock time is up to date.
 
         /**
          * @brief Constructs an MCU object.
@@ -155,7 +158,6 @@ class MCU {
         HTTPClient _client; // HTTP client for outgoing requests.
         WebServer _server; // Web server for setup interface.
         int _standardRequestIntervalFactor = 1; // Multiplier for retry timing logic.
-        bool _isServerRunning = false; // Indicates if setup interface server is running.
 
         /**
          * @brief Converts a boolean to its string representation.
@@ -175,11 +177,37 @@ class MCU {
         );
 
         /**
-         * @brief Attempts to reconnect to Wi-Fi using stored credentials.
-         * 
-         * Reads SSID and password from `Preferences` and calls `WiFi.begin()`.
+         * @brief Updates the MCU's WiFi connection based on stored preferences.
+         *
+         * If setup has been completed and WiFi credentials are available in preferences,
+         * this function attempts to connect to the specified WiFi network. If credentials
+         * are missing, it starts the setup interface server to allow the user to provide
+         * the necessary information.
+         *
+         * - Connects to WiFi using stored SSID and password if setup is complete.
+         * - If setup is incomplete, starts a captive portal and HTTP server for user configuration.
+         * - Continuously processes DNS and HTTP server requests during setup mode.
+         *
+         * @note Assumes that the preferences instance is initialized and that
+         *       logging, WiFi, and server methods are available.
          */
-        void _reConnect();
+        void _updateConnection();
+
+        /**
+         * @brief Updates MCU settings from persistent preferences.
+         *
+         * Reads stored values from the preferences storage to update
+         * the brightness cycle hour, brightness inheritance flag,
+         * and minimum brightness value if setup has been completed.
+         *
+         * - Updates `brightnessCycle` with the stored cycle start hour.
+         * - If brightness inheritance is enabled, updates `isBrightnessInherit`
+         *   and `brightnessMinimum` from preferences.
+         *
+         * @note This function assumes that the preferences instance
+         *       has been properly initialized.
+         */
+        void _updatePreferences();
 
         /**
          * @brief Builds a unique Wi-Fi hotspot name using the device's MAC address.

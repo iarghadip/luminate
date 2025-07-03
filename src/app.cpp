@@ -153,16 +153,16 @@ void updateLED(
         _mcu.delay(BRIGHTNESS_UPDATE_INTERVAL, []() {
             if (_mcu.isTimeUpdated) {
                 String sceneTime = _mcu.getTime(_mcu.TIME_ONLY);
-                int sceneBrightness = _dls.read(BRIGHTNESS_MINIMUM_PERCENT);
+                int sceneBrightness = _mcu.isBrightnessInherit ? _dls.read(_mcu.brightnessMinimum) : 100.0f;
                 int hh = sceneTime.substring(0, 2).toInt();
                 int mm = sceneTime.substring(3, 5).toInt();
                 int ss = sceneTime.substring(6, 8).toInt();
                 int secondsSince00 = hh * 3600 + mm * 60 + ss;
                 int secondsSince06;
-                if (secondsSince00 >= 6 * 3600) {
-                    secondsSince06 = secondsSince00 - 6 * 3600;
+                if (secondsSince00 >= _mcu.brightnessCycle * 3600) {
+                    secondsSince06 = secondsSince00 - _mcu.brightnessCycle * 3600;
                 } else {
-                    secondsSince06 = secondsSince00 + (24 * 3600) - 6 * 3600;
+                    secondsSince06 = secondsSince00 + (24 * 3600) - _mcu.brightnessCycle * 3600;
                 }
                 float percent = (secondsSince06 * 100.0) / (24 * 60 * 60);
                 if (percent < 0) percent = 0;
