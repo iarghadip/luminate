@@ -204,10 +204,30 @@
                 text-align: center;
                 color: rgba(255, 255, 255, 0.4);
             }
+            input[type="number"]::-webkit-outer-spin-button,
+            input[type="number"]::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+            input[type="number"]:hover::-webkit-outer-spin-button,
+            input[type="number"]:hover::-webkit-inner-spin-button,
+            input[type="number"]:focus::-webkit-outer-spin-button,
+            input[type="number"]:focus::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+            input[type="number"] {
+                -moz-appearance: textfield;
+            }
+            input[type="number"]:hover,
+            input[type="number"]:focus {
+                -moz-appearance: textfield;
+            }
         </style>
         <script>
             document.addEventListener("DOMContentLoaded", () => {
                 let setMessageID = null;
+                let screenID = 1;
                 const form = document.querySelector("form");
                 const submit = form.querySelector("button[type=submit]");
                 function setMessage(text, reset = true) {
@@ -218,7 +238,7 @@
                     }
                     if (reset) {
                         setMessageID = setTimeout(() => {
-                            e.textContent = 'Connect Luminate to Wi-Fi?';
+                            e.textContent = screenID == 1 ? 'Connect Luminate to Wi-Fi?' : 'What are your preferences?';
                             setMessageID = null;
                         }, 2500);
                     }
@@ -236,14 +256,30 @@
                         );
                     }
                 }
-                function isValidInput(ssid, password) {
+                function isValidInputG1(wSsid, wPassword) {
                     return (
-                        typeof ssid == "string" &&
-                        typeof password == "string" &&
-                        ssid.length >= 1 &&
-                        ssid.length <= 32 &&
-                        password.length >= 8 &&
-                        password.length <= 63
+                        typeof wSsid === "string" &&
+                        typeof wPassword === "string" &&
+                        wSsid.length >= 1 &&
+                        wSsid.length <= 32 &&
+                        wPassword.length >= 8 &&
+                        wPassword.length <= 63
+                    );
+                }
+                function isValidInputG2(bCycle, bMinimum) {
+                    if (bCycle === "" || bMinimum === "") {
+                        return false;
+                    }
+                    const nCycle = Number(bCycle);
+                    const nMinimum = Number(bMinimum);
+                    return (
+                        !isNaN(nCycle) &&
+                        Number.isInteger(nCycle) &&
+                        nCycle >= 0 &&
+                        nCycle <= 23 &&
+                        !isNaN(nMinimum) &&
+                        nMinimum >= 0 &&
+                        nMinimum <= 50
                     );
                 }
                 function createNestedSquares() {
@@ -261,10 +297,28 @@
                 }
                 form.addEventListener("submit", e => {
                     e.preventDefault();
-                    const ssid = form.querySelector("input[name='{KEY_WIFI_SSID}']").value;
-                    const password = form.querySelector("input[name='{KEY_WIFI_PASSWORD}']").value;
-                    if (!isValidInput(ssid, password)) {
-                        setMessage("SSID or Password is invalid!");
+                    const wSsid = form.querySelector("input[name='{KEY_WIFI_SSID}']").value;
+                    const wPassword = form.querySelector("input[name='{KEY_WIFI_PASSWORD}']").value;
+                    const bCycle = form.querySelector("input[name='{KEY_BRIGHTNESS_CYCLE}']").value;
+                    const bMinimum = form.querySelector("input[name='{KEY_BRIGHTNESS_MINIMUM}']").value;
+                    if (screenID == 1) {
+                        if (isValidInputG1(wSsid, wPassword)) {
+                            screenID = 2;
+                            document.getElementById("message").textContent = 'What are your preferences?';
+                            document.getElementById("screen-1").style.display = "none";
+                            document.getElementById("screen-2").style.display = "block";
+                            document.getElementById("button-text").textContent = "Save Preferences";
+                        } else {
+                            setMessage("WiFi credentials are invalid!");
+                        }
+                        return;
+                    }
+                    if (!isValidInputG1(wSsid, wPassword)) {
+                        setMessage("WiFi credentials are invalid!");
+                        return;
+                    }
+                    if (!isValidInputG2(bCycle, bMinimum)) {
+                        setMessage("Brightness values are invalid!");
                         return;
                     }
                     submit.querySelector(".text").textContent = "Saving...";
@@ -276,18 +330,20 @@
                                 "Content-Type": "application/x-www-form-urlencoded"
                             },
                             body: new URLSearchParams({
-                                '{KEY_WIFI_SSID}': ssid,
-                                '{KEY_WIFI_PASSWORD}': password
+                                '{KEY_WIFI_SSID}': wSsid,
+                                '{KEY_WIFI_PASSWORD}': wPassword,
+                                '{KEY_BRIGHTNESS_CYCLE}': bCycle,
+                                '{KEY_BRIGHTNESS_MINIMUM}': bMinimum
                             })
                         })
                         .then(r => r.text())
                         .then(response => {
                             const json = parseJSON(response);
                             if (json.success) {
-                                setMessage(`Luminate is connected to ${ssid}.`);
+                                setMessage(`Luminate is connected to ${wSsid}.`);
                                 submit.querySelector(".text").textContent = "Completed";
                             } else {
-                                throw new Error(json.message || `Could not connect to ${ssid}!`);
+                                throw new Error(json.message || `Could not connect to ${wSsid}!`);
                             }
                             console.log("response:", json);
                         })
@@ -299,6 +355,7 @@
                     }, 1000);
                 });
                 createNestedSquares();
+                document.getElementById("screen-2").style.display = "none";
             });
         </script>
     </head>
@@ -307,32 +364,60 @@
             {FIRMWARE_VERSION}
         </div>
         <div class="flex-center full-height">
-            <form autocomplete="off" class="form mb-4" action="/wifi/save" method="post" novalidate>
+            <form autocomplete="off" class="form mb-4" action="/setup/save" method="post" novalidate>
                 <div class="control mb-2">
                     <h1 id="message">Connect Luminate to Wi-Fi?</h1>
                 </div>
-                <div class="control block-cube block-input">
-                    <input name="{KEY_WIFI_SSID}" placeholder="SSID (2.4 GHz Only)" type="text">
-                    <div class="bg-top">
-                        <div class="bg-inner"></div>
+                <div id="screen-1">
+                    <div class="control block-cube block-input">
+                        <input name="{KEY_WIFI_SSID}" placeholder="SSID (2.4 GHz Only)" type="text">
+                        <div class="bg-top">
+                            <div class="bg-inner"></div>
+                        </div>
+                        <div class="bg-right">
+                            <div class="bg-inner"></div>
+                        </div>
+                        <div class="bg">
+                            <div class="bg-inner"></div>
+                        </div>
                     </div>
-                    <div class="bg-right">
-                        <div class="bg-inner"></div>
-                    </div>
-                    <div class="bg">
-                        <div class="bg-inner"></div>
+                    <div class="control block-cube block-input">
+                        <input name="{KEY_WIFI_PASSWORD}" placeholder="Password" type="password">
+                        <div class="bg-top">
+                            <div class="bg-inner"></div>
+                        </div>
+                        <div class="bg-right">
+                            <div class="bg-inner"></div>
+                        </div>
+                        <div class="bg">
+                            <div class="bg-inner"></div>
+                        </div>
                     </div>
                 </div>
-                <div class="control block-cube block-input">
-                    <input name="{KEY_WIFI_PASSWORD}" placeholder="Password" type="password">
-                    <div class="bg-top">
-                        <div class="bg-inner"></div>
+                <div id="screen-2">
+                    <div class="control block-cube block-input">
+                        <input name="{KEY_BRIGHTNESS_CYCLE}" placeholder="Cycle Hour (Eg: 6)" min="0" max="23" type="number">
+                        <div class="bg-top">
+                            <div class="bg-inner"></div>
+                        </div>
+                        <div class="bg-right">
+                            <div class="bg-inner"></div>
+                        </div>
+                        <div class="bg">
+                            <div class="bg-inner"></div>
+                        </div>
                     </div>
-                    <div class="bg-right">
-                        <div class="bg-inner"></div>
-                    </div>
-                    <div class="bg">
-                        <div class="bg-inner"></div>
+                    <div class="control block-cube block-input">
+                        <input name="{KEY_BRIGHTNESS_MINIMUM}" placeholder="Minimum Brightness %" min="0" max="50" type="number">
+                        <div class="bg-top">
+                            <div class="bg-inner"></div>
+                        </div>
+                        <div class="bg-right">
+                            <div class="bg-inner"></div>
+                        </div>
+                        <div class="bg">
+                            <div class="bg-inner"></div>
+                        </div>
                     </div>
                 </div>
                 <button class="btn block-cube block-cube-hover mb-2" type="submit">
@@ -345,7 +430,7 @@
                     <div class="bg">
                         <div class="bg-inner"></div>
                     </div>
-                    <div class="text">
+                    <div id="button-text" class="text">
                         Save Network
                     </div>
                 </button>

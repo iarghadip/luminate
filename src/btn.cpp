@@ -8,6 +8,22 @@ void BTN::begin(
     _mcu = mcu;
     _mcu->log("BTN::begin(): Initializing BTN...");
     pinMode(PIN_BUTTON_RESET, INPUT_PULLUP);
+    pinMode(PIN_SWITCH_DLS, INPUT_PULLUP);
+    _wasEnabled = digitalRead(PIN_SWITCH_DLS) == LOW;
+}
+
+bool BTN::isToogleEnabled() {
+    return _wasEnabled;
+}
+
+void BTN::onToggle(
+    std::function<void(bool status)> onToggle
+) {
+    bool isEnabled = digitalRead(PIN_SWITCH_DLS) == LOW;
+    if (isEnabled != _wasEnabled) {
+        _wasEnabled = isEnabled;
+        onToggle(isEnabled);
+    }
 }
 
 void BTN::onSinglePress(

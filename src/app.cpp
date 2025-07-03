@@ -38,7 +38,7 @@ void updateRTC(
  * @note This function is designed to run as a FreeRTOS task.
  * 
  * @see WIFI_LED_BLINK_INTERVAL
- * @see PIN_LED_WIFI
+ * @see PIN_LED_WSL
  */
 void updateWSL(
     void* arguments
@@ -79,6 +79,7 @@ void setup() {
     _mcu.assign(1, updateRTC);
     _mcu.assign(1, updateWSL);
     _mcu.assign(1, updateLED);
+    _mcu.isBrightnessInherit = _btn.isToogleEnabled();
 }
 
 /**
@@ -90,14 +91,17 @@ void setup() {
 void loop() {
     _mcu.delay(GENERAL_SIO_INTERVAL, []() {
         if (!_mcu.isUserInterrupt) {
+            _btn.onToggle([](bool status) {
+                _mcu.isBrightnessInherit = status;
+            });
             _btn.onSinglePress([]() {
                 _mcu.isUserInterrupt = true;
-                _mcu.setWLED(LOW);
+                _mcu.setWSL(LOW);
                 _mcu.kill(true);
             });
             _btn.onLongPress([]() {
                 _mcu.isUserInterrupt = true;
-                _mcu.setWLED(LOW);
+                _mcu.setWSL(LOW);
                 _mcu.preferences.clear();
                 _mcu.preferences.end();
                 _mcu.log("loop(): _mcu.delay(): _btn.onLongPress(): User preferences cleared.");
@@ -133,14 +137,14 @@ void updateWSL(
         _mcu.delay(GENERAL_MIO_INTERVAL, []() {
             if (WiFi.status() == WL_CONNECTED) {
                 _mcu.log("updateWSL(): _mcu.delay(): Connected to WiFi.");
-                _mcu.setWLED(HIGH);
+                _mcu.setWSL(HIGH);
                 _mcu.kill();
             } else if (_mcu.isUserInterrupt) {
                 _mcu.log("updateWSL(): _mcu.delay(): User interrupted.");
-                _mcu.setWLED(LOW);
+                _mcu.setWSL(LOW);
                 _mcu.kill();
             } else {
-                _mcu.setWLED((((millis() / GENERAL_MIO_INTERVAL) % 2) == 0) ? HIGH : LOW);
+                _mcu.setWSL((((millis() / GENERAL_MIO_INTERVAL) % 2) == 0) ? HIGH : LOW);
             }
         });
     }

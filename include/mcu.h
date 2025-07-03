@@ -34,7 +34,7 @@ class MCU {
         bool isUserInterrupt = false; // Tracks user button interrupt state.
         bool isTimeUpdated = false; // Indicates if clock time is up to date.
         int brightnessCycle = 6; // Preferences instance for persistent key-value storage.
-        bool isBrightnessInherit = false; // Tracks user button interrupt state.
+        bool isBrightnessInherit; // Tracks user button interrupt state.
         float brightnessMinimum = 5.0f; // Indicates if clock time is up to date.
 
         /**
@@ -77,7 +77,7 @@ class MCU {
          * 
          * @param value Digital output value (`HIGH` or `LOW`).
          */
-        void setWLED(
+        void setWSL(
             uint8_t value
         );
 

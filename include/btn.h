@@ -29,6 +29,33 @@ class BTN {
         );
 
         /**
+         * @brief Returns the current enabled state of the toggle switch.
+         *
+         * This function returns the last known state of the toggle switch as tracked by the BTN class.
+         * It reflects whether the switch is currently considered enabled (ON) or disabled (OFF).
+         *
+         * @return true if the toggle switch is enabled (ON), false if it is disabled (OFF).
+         */
+        bool isToogleEnabled();
+
+        /**
+         * @brief Monitors the toggle switch and invokes a callback on state change.
+         *
+         * This method continuously checks the state of the toggle switch connected to PIN_SWITCH_DLS.
+         * When the switch state changes (from ON to OFF or OFF to ON), the provided callback function
+         * is called with the new state.
+         *
+         * @param onToggle A callback function that receives the current state of the switch.
+         *                 - true:  Switch is ON (circuit closed, pin LOW)
+         *                 - false: Switch is OFF (circuit open, pin HIGH)
+         *
+         * @note This function should be called repeatedly (e.g., in the main loop) to detect state changes.
+         */
+        void onToggle(
+            std::function<void(bool status)> onToggle
+        );
+
+        /**
          * @brief Registers a callback to be executed on a short button press.
          * 
          * A short press is considered when the button is pressed and released 
@@ -55,6 +82,7 @@ class BTN {
         MCU* _mcu; // Pointer to the MCU instance for GPIO interaction.
         unsigned long _pressStartTime = 0; // Timestamp when the button was initially pressed.
         bool _wasPressed = false; // Internal state flag to track if the button was previously pressed.
+        bool _wasEnabled; // Tracks the previous enabled state of the switch (for edge detection).
 };
 
 #endif // btn_h
