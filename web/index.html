@@ -227,7 +227,7 @@
         <script>
             document.addEventListener("DOMContentLoaded", () => {
                 let setMessageID = null;
-                let screenID = 1;
+                let nextScreen = false;
                 const form = document.querySelector("form");
                 const submit = form.querySelector("button[type=submit]");
                 function setMessage(text, reset = true) {
@@ -238,7 +238,7 @@
                     }
                     if (reset) {
                         setMessageID = setTimeout(() => {
-                            e.textContent = screenID == 1 ? 'Connect Luminate to Wi-Fi?' : 'What are your preferences?';
+                            e.textContent = nextScreen ? 'What are your preferences?' : 'Connect Luminate to Wi-Fi?';
                             setMessageID = null;
                         }, 2500);
                     }
@@ -301,13 +301,16 @@
                     const wPassword = form.querySelector("input[name='{KEY_WIFI_PASSWORD}']").value;
                     const bCycle = form.querySelector("input[name='{KEY_BRIGHTNESS_CYCLE}']").value;
                     const bMinimum = form.querySelector("input[name='{KEY_BRIGHTNESS_MINIMUM}']").value;
-                    if (screenID == 1) {
+                    if (!nextScreen) {
                         if (isValidInputG1(wSsid, wPassword)) {
-                            screenID = 2;
-                            document.getElementById("message").textContent = 'What are your preferences?';
-                            document.getElementById("screen-1").style.display = "none";
-                            document.getElementById("screen-2").style.display = "block";
-                            document.getElementById("button-text").textContent = "Save Preferences";
+                            submit.querySelector(".text").textContent = "Saving...";
+                            setTimeout(() => {
+                                nextScreen = true;
+                                document.getElementById("message").textContent = 'What are your preferences?';
+                                document.getElementById("screen-1").style.display = "none";
+                                document.getElementById("screen-2").style.display = "block";
+                                submit.querySelector(".text").textContent = "Save Preferences";
+                            }, 1000);
                         } else {
                             setMessage("WiFi credentials are invalid!");
                         }
@@ -349,7 +352,7 @@
                         })
                         .catch(e => {
                             setMessage(e.message || "Something went wrong!");
-                            submit.querySelector(".text").textContent = "Save Network";
+                            submit.querySelector(".text").textContent = `Save ${nextScreen ? 'Preferences' : 'Network'}`;
                             form.querySelectorAll("input, button").forEach(e => e.disabled = false);
                         });
                     }, 1000);
@@ -430,7 +433,7 @@
                     <div class="bg">
                         <div class="bg-inner"></div>
                     </div>
-                    <div id="button-text" class="text">
+                    <div class="text">
                         Save Network
                     </div>
                 </button>

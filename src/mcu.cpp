@@ -173,7 +173,7 @@ void MCU::_updateConnection() {
 void MCU::_updatePreferences() {
     if (preferences.getBool(KEY_SETUP_COMPLETED)) {
         brightnessCycle = preferences.getInt(KEY_BRIGHTNESS_CYCLE);
-        brightnessMinimum = preferences.getInt(
+        brightnessMinimum = preferences.getFloat(
             KEY_BRIGHTNESS_MINIMUM
         );
     }
