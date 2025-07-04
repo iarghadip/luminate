@@ -189,19 +189,36 @@ String MCU::_getSetupHotspotName() {
     return String(FIRMWARE_NAME) + "_" + suffix;
 }
 
+void MCU::_getFile(
+    String path,
+    std::function<void(File file, String mime)> onLoad
+) {
+    File file = SPIFFS.open(path, "r");
+    if (file) {
+        if (path.endsWith(".js")) {
+            onLoad(file, "application/javascript");
+        } else if (path.endsWith(".html")) {
+            onLoad(file, "text/html");
+        } else if (path.endsWith(".css")) {
+            onLoad(file, "text/css");
+        } else {
+            onLoad(file, "text/plain");
+        }
+        file.close();
+    } else {
+        log("MCU::_getFile(): Failed to open path: \"" + path + "\".", false);
+    }
+}
+
 String MCU::_getHTML(
     String title
 ) {
     String body = "";
-    File file = SPIFFS.open("/index.html", "r");
-    if (!file) {
-        log("MCU::_getHTML(): Failed to open /index.html.", false);
-        return "MCU::_getHTML(): Failed to open /index.html.";
-    }
-    while (file.available()) {
-        body += file.readString();
-    }
-    file.close();
+    _getFile("/index.html", [&body](File file, String mime) {
+        while (file.available()) {
+            body += file.readString();
+        }
+    });
     log("MCU::_getHTML(): Successfully loaded setup HTML.");
     body.replace("{SETUP_INTERFACE_TITLE}", title);
     body.replace("{FIRMWARE_VERSION}", FIRMWARE_VERSION);
@@ -238,7 +255,14 @@ void MCU::_startSetupInterfaceServer() {
     }
     _dns.start(53, "*", local);
     _server.onNotFound([this, name]() {
-        _server.send(200, "text/html", _getHTML(name));
+        String path = _server.uri();
+        if (path.endsWith("index.js") || path.endsWith("index.css")) {
+            _getFile(path, [this](File file, String mime) {
+                _server.streamFile(file, mime);
+            });
+        } else {
+            _server.send(200, "text/html", _getHTML(name));
+        }
     });
     _server.on("/setup/save", HTTP_POST, [this]() {
         if (_server.hasArg(KEY_WIFI_SSID) && _server.hasArg(KEY_WIFI_PASSWORD)) {

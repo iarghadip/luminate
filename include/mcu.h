@@ -217,6 +217,17 @@ class MCU {
         String _getSetupHotspotName();
 
         /**
+         * @brief Opens a file from SPIFFS and calls onLoad with the file and its MIME type.
+         * 
+         * @param path The path to the file.
+         * @param onLoad Callback function with the opened file and its MIME type.
+         */
+        void _getFile(
+            String path,
+            std::function<void(File file, String mime)> onLoad
+        );
+
+        /**
          * @brief Loads and token-replaces the HTML setup page from SPIFFS.
          * 
          * Reads the contents of `/index.html` from SPIFFS and replaces template tokens
