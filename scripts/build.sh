@@ -79,7 +79,7 @@ function minify {
         script_tag "$DIR/../data/$(basename "$1")" false
     fi
     ini_variables "$DIR/../data/$(basename "$1")"
-    echo "> Compressed: $(basename "$1")"
+    echo "> Compiled: $(basename "$1")"
 }
 
 echo
