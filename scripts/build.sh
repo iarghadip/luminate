@@ -42,6 +42,10 @@ function check_usb {
     $PIO device list | grep -q "/dev/ttyUSB"
 }
 
+function check_size {
+  ls -lh "$1" | awk '{print $5}'
+}
+
 function sed_inplace {
     if [[ "$(uname)" == "Darwin" ]]; then
         sed -i '' "$@"
@@ -64,7 +68,7 @@ function add_script_tag {
 }
 
 function add_ini_variables {
-    local tmp=$(mktemp)
+    tmp=$(mktemp)
     grep '^[[:space:]]*-D' platformio.ini | while read -r line; do
         if [[ "$line" =~ -D([A-Za-z0-9_]+)=(.+) ]]; then
             key="${BASH_REMATCH[1]}"
@@ -84,6 +88,7 @@ function add_ini_variables {
 }
 
 function compile_file {
+    output="$DIR/../data/$(basename "$1")"
     if [[ "$1" == *.js ]]; then
         add_script_tag "$1" true
     fi
@@ -97,13 +102,13 @@ function compile_file {
         --use-short-doctype \
         --minify-css true \
         --minify-js true \
-        "$1" -o "$DIR/../data/$(basename "$1")"
+        "$1" -o "$output"
     if [[ "$1" == *.js ]]; then
         add_script_tag "$1" false
-        add_script_tag "$DIR/../data/$(basename "$1")" false
+        add_script_tag "$output" false
     fi
-    add_ini_variables "$DIR/../data/$(basename "$1")"
-    echo "> Compiled: $(basename "$1")"
+    add_ini_variables "$output"
+    echo "> Compiled: $(check_size "$1") → $(check_size "$output"): $(basename "$1")"
 }
 
 for arg in "$@"; do
