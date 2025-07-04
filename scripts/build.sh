@@ -39,6 +39,26 @@ function script_tag {
     fi
 }
 
+function ini_variables {
+    local tmp=$(mktemp)
+    grep '^[[:space:]]*-D' platformio.ini | while read -r line; do
+        if [[ "$line" =~ -D([A-Za-z0-9_]+)=(.+) ]]; then
+            key="${BASH_REMATCH[1]}"
+            raw="${BASH_REMATCH[2]}"
+            raw="${raw//\\\"/}"
+            raw="${raw//\"/}"
+            raw_escaped=$(printf '%s' "$raw" | sed -e 's/[\/&|]/\\&/g')
+            printf "%s\t%s\n" "$key" "$raw_escaped"
+        fi
+    done > "$tmp.kv"
+    cp "$1" "$tmp.out"
+    while IFS=$'\t' read -r key value; do
+        sed -i '' "s|{$key}|$value|g" "$tmp.out"
+    done < "$tmp.kv"
+    mv "$tmp.out" "$1"
+    rm -f "$tmp.kv"
+}
+
 function minify {
     if [[ "$1" == *.js ]]; then
         script_tag "$1" true
@@ -58,6 +78,7 @@ function minify {
         script_tag "$1" false
         script_tag "$DIR/../data/$(basename "$1")" false
     fi
+    ini_variables "$DIR/../data/$(basename "$1")"
     echo "> Compressed: $(basename "$1")"
 }
 

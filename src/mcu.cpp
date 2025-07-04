@@ -210,25 +210,6 @@ void MCU::_getFile(
     }
 }
 
-String MCU::_getHTML(
-    String title
-) {
-    String body = "";
-    _getFile("/index.html", [&body](File file, String mime) {
-        while (file.available()) {
-            body += file.readString();
-        }
-    });
-    log("MCU::_getHTML(): Successfully loaded setup HTML.");
-    body.replace("{SETUP_INTERFACE_TITLE}", title);
-    body.replace("{FIRMWARE_VERSION}", FIRMWARE_VERSION);
-    body.replace("{KEY_WIFI_SSID}", KEY_WIFI_SSID);
-    body.replace("{KEY_WIFI_PASSWORD}", KEY_WIFI_PASSWORD);
-    body.replace("{KEY_BRIGHTNESS_CYCLE}", KEY_BRIGHTNESS_CYCLE);
-    body.replace("{KEY_BRIGHTNESS_MINIMUM}", KEY_BRIGHTNESS_MINIMUM);
-    return body;
-}
-
 String MCU::_getJSON(
     bool success,
     String message
@@ -256,13 +237,10 @@ void MCU::_startSetupInterfaceServer() {
     _dns.start(53, "*", local);
     _server.onNotFound([this, name]() {
         String path = _server.uri();
-        if (path.endsWith("index.js") || path.endsWith("index.css")) {
-            _getFile(path, [this](File file, String mime) {
-                _server.streamFile(file, mime);
-            });
-        } else {
-            _server.send(200, "text/html", _getHTML(name));
-        }
+        bool asset = path == "/index.js" || path == "/index.css";
+        _getFile(asset ? path : "/index.html", [this](File file, String mime) {
+            _server.streamFile(file, mime);
+        });
     });
     _server.on("/setup/save", HTTP_POST, [this]() {
         if (_server.hasArg(KEY_WIFI_SSID) && _server.hasArg(KEY_WIFI_PASSWORD)) {

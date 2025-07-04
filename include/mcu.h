@@ -228,22 +228,6 @@ class MCU {
         );
 
         /**
-         * @brief Loads and token-replaces the HTML setup page from SPIFFS.
-         * 
-         * Reads the contents of `/index.html` from SPIFFS and replaces template tokens
-         * with runtime values. The following placeholders are replaced:
-         * - `{TITLE}` → the provided `title` argument
-         * - `{KEY_WIFI_SSID}` → stored Wi-Fi SSID from preferences
-         * - `{KEY_WIFI_PASSWORD}` → stored Wi-Fi password from preferences
-         * 
-         * @param title The title to inject into the HTML (replaces `{TITLE}`).
-         * @return A processed HTML string, or a plain text error message if the file cannot be opened.
-         */
-        String _getHTML(
-            String title
-        );
-
-        /**
          * @brief Generates a JSON response with success flag and optional message.
          * 
          * @param success Result status.
