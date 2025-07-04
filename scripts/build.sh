@@ -95,8 +95,8 @@ function compile_file {
         --remove-script-type-attributes \
         --remove-tag-whitespace \
         --use-short-doctype \
-        --compile_file-css true \
-        --compile_file-js true \
+        --minify-css true \
+        --minify-js true \
         "$1" -o "$DIR/../data/$(basename "$1")"
     if [[ "$1" == *.js ]]; then
         add_script_tag "$1" false
