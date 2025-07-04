@@ -26,6 +26,14 @@ function connected {
     $PIO device list | grep -q "/dev/ttyUSB"
 }
 
+function sed_inplace {
+    if [[ "$(uname)" == "Darwin" ]]; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
+}
+
 function script_tag {
     if [ "$2" = true ]; then
         script_tag "$1" false
@@ -35,7 +43,7 @@ function script_tag {
         echo -n "</script>" >> "$tmp"
         mv "$tmp" "$1"
     else
-        sed -i '' 's|<script>||g; s|</script>||g' "$1"
+        sed_inplace 's|<script>||g; s|</script>||g' "$1"
     fi
 }
 
@@ -53,7 +61,7 @@ function ini_variables {
     done > "$tmp.kv"
     cp "$1" "$tmp.out"
     while IFS=$'\t' read -r key value; do
-        sed -i '' "s|{$key}|$value|g" "$tmp.out"
+        sed_inplace "s|{$key}|$value|g" "$tmp.out"
     done < "$tmp.kv"
     mv "$tmp.out" "$1"
     rm -f "$tmp.kv"
