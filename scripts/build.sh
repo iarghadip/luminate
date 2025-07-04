@@ -22,7 +22,23 @@ if [ ! -t 0 ]; then
     exit 1
 fi
 
-function connected {
+if [ $# -eq 0 ]; then
+    echo
+    echo -e "${RED}Error:${RST} No arguments provided." >&2
+    echo "Try '$(basename "$0") --help' for usage information." >&2
+    echo
+    exit 1
+fi
+
+function check_ini {
+    if [ ! -f "$DIR/../$ENV" ]; then
+        echo
+        echo "> Created: $ENV"
+        cp "$DIR/example.ini" "$DIR/../$ENV"
+    fi
+}
+
+function check_usb {
     $PIO device list | grep -q "/dev/ttyUSB"
 }
 
@@ -34,9 +50,9 @@ function sed_inplace {
     fi
 }
 
-function script_tag {
+function add_script_tag {
     if [ "$2" = true ]; then
-        script_tag "$1" false
+        add_script_tag "$1" false
         tmp=$(mktemp)
         echo -n "<script>" > "$tmp"
         cat "$1" >> "$tmp"
@@ -47,7 +63,7 @@ function script_tag {
     fi
 }
 
-function ini_variables {
+function add_ini_variables {
     local tmp=$(mktemp)
     grep '^[[:space:]]*-D' platformio.ini | while read -r line; do
         if [[ "$line" =~ -D([A-Za-z0-9_]+)=(.+) ]]; then
@@ -67,9 +83,9 @@ function ini_variables {
     rm -f "$tmp.kv"
 }
 
-function minify {
+function compile_file {
     if [[ "$1" == *.js ]]; then
-        script_tag "$1" true
+        add_script_tag "$1" true
     fi
     html-minifier \
         --collapse-whitespace \
@@ -79,38 +95,35 @@ function minify {
         --remove-script-type-attributes \
         --remove-tag-whitespace \
         --use-short-doctype \
-        --minify-css true \
-        --minify-js true \
+        --compile_file-css true \
+        --compile_file-js true \
         "$1" -o "$DIR/../data/$(basename "$1")"
     if [[ "$1" == *.js ]]; then
-        script_tag "$1" false
-        script_tag "$DIR/../data/$(basename "$1")" false
+        add_script_tag "$1" false
+        add_script_tag "$DIR/../data/$(basename "$1")" false
     fi
-    ini_variables "$DIR/../data/$(basename "$1")"
+    add_ini_variables "$DIR/../data/$(basename "$1")"
     echo "> Compiled: $(basename "$1")"
 }
 
-echo
-
-if [ ! -f "$DIR/../$ENV" ]; then
-    echo "> Created: $ENV"
-    cp "$DIR/example.ini" "$DIR/../$ENV"
-fi
-
-for item in "$DIR/../web"/*; do
-    minify "$item" &
-done
-
-wait
-
 for arg in "$@"; do
     case "$arg" in
+        -fc|--filecompile)
+            check_ini
+            echo
+            for item in "$DIR/../web"/*; do
+                compile_file "$item" &
+            done
+            wait
+            continue
+            ;;
         -fs|--filesystem)
             if [ "$BFS" = false ]; then
+                check_ini
                 BFS=true
                 echo
                 $PIO run --target buildfs --environment esp32dev
-                if connected; then
+                if check_usb; then
                     echo
                     $PIO run --target uploadfs --environment esp32dev
                 fi
@@ -119,10 +132,11 @@ for arg in "$@"; do
             ;;
         -fw|--firmware)
             if [ "$BFW" = false ]; then
+                check_ini
                 BFW=true
                 echo
                 $PIO run --environment esp32dev
-                if connected; then
+                if check_usb; then
                     echo
                     $PIO run --target upload --environment esp32dev
                 fi

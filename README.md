@@ -32,7 +32,7 @@ Follow these steps to setup the project:
 
 2. Menu > Terminal > New Terminal.
 
-3. Execute `./scripts/build.sh -fs -fw`.
+3. Execute `./scripts/build.sh -fc -fs -fw`.
 
 ## Documentation
 
