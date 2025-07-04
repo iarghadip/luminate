@@ -26,7 +26,23 @@ function connected {
     $PIO device list | grep -q "/dev/ttyUSB"
 }
 
+function script_tag {
+    if [ "$2" = true ]; then
+        script_tag "$1" false
+        tmp=$(mktemp)
+        echo -n "<script>" > "$tmp"
+        cat "$1" >> "$tmp"
+        echo -n "</script>" >> "$tmp"
+        mv "$tmp" "$1"
+    else
+        sed -i '' 's|<script>||g; s|</script>||g' "$1"
+    fi
+}
+
 function minify {
+    if [[ "$1" == *.js ]]; then
+        script_tag "$1" true
+    fi
     html-minifier \
         --collapse-whitespace \
         --remove-comments \
@@ -38,6 +54,10 @@ function minify {
         --minify-css true \
         --minify-js true \
         "$1" -o "$DIR/../data/$(basename "$1")"
+    if [[ "$1" == *.js ]]; then
+        script_tag "$1" false
+        script_tag "$DIR/../data/$(basename "$1")" false
+    fi
     echo "> Compressed: $(basename "$1")"
 }
 
