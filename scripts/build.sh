@@ -1,5 +1,18 @@
 #!/bin/bash
 
+###############################################################################
+# @file        build.sh
+# @brief       PlatformIO build and deployment helper script for ESP32 projects.
+# @details
+#   Automates file compilation, filesystem image creation, firmware build, and
+#   upload tasks for PlatformIO-based ESP32 projects. Supports argument-based
+#   task selection and variable substitution from platformio.ini.
+#
+# @author      iarghadip
+# @date        2025-07-05
+# @version     2.0
+###############################################################################
+
 RED='\033[0;31m'
 GRN='\033[0;32m'
 YEL='\033[1;33m'
@@ -7,12 +20,19 @@ BLU='\033[0;34m'
 BLD='\033[1m'
 RST='\033[0m'
 
+BAL=false
+BFC=false
 BFS=false
 BFW=false
 
 ENV="platformio.ini"
-PIO=~/.platformio/penv/bin/platformio
-DIR=$(dirname "$(readlink -f "$0")")
+PIO="$HOME/.platformio/penv/bin/platformio"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+###############################################################################
+# @fn          main
+# @brief       Main entry point: Validates input and parses arguments.
+###############################################################################
 
 if [ ! -t 0 ]; then
     echo
@@ -30,23 +50,43 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-function check_ini {
-    if [ ! -f "$DIR/../$ENV" ]; then
+###############################################################################
+# @fn          check_ini
+# @brief       Ensures platformio.ini exists; copies example if missing.
+###############################################################################
+check_ini() {
+    local ini_path="$DIR/../$ENV"
+    if [ ! -f "$ini_path" ]; then
         echo
         echo "> Created: $ENV"
-        cp "$DIR/example.ini" "$DIR/../$ENV"
+        cp "$DIR/example.ini" "$ini_path"
     fi
 }
 
-function check_usb {
-    $PIO device list | grep -q "/dev/ttyUSB"
+###############################################################################
+# @fn          check_usb
+# @brief       Checks if a /dev/ttyUSB device is present.
+# @retval      0 if found, 1 otherwise.
+###############################################################################
+check_usb() {
+    "$PIO" device list | grep -q "/dev/ttyUSB"
 }
 
-function check_size {
-  ls -lh "$1" | awk '{print $5}'
+###############################################################################
+# @fn          check_size
+# @brief       Prints the human-readable size of a file.
+# @param[in]   $1  File path.
+###############################################################################
+check_size() {
+    ls -lh -- "$1" | awk '{print $5}'
 }
 
-function sed_inplace {
+###############################################################################
+# @fn          sed_inplace
+# @brief       Cross-platform in-place sed.
+# @param[in]   $@  sed arguments.
+###############################################################################
+sed_inplace() {
     if [[ "$(uname)" == "Darwin" ]]; then
         sed -i '' "$@"
     else
@@ -54,43 +94,64 @@ function sed_inplace {
     fi
 }
 
-function add_script_tag {
-    if [ "$2" = true ]; then
-        add_script_tag "$1" false
+###############################################################################
+# @fn          add_script_tag
+# @brief       Wraps/unwraps JS files in <script> tags for minification.
+# @param[in]   $1  File path.
+# @param[in]   $2  true to add, false to remove tags.
+###############################################################################
+add_script_tag() {
+    local file="$1"
+    local add="$2"
+    if [ "$add" = true ]; then
+        add_script_tag "$file" false
+        local tmp
         tmp=$(mktemp)
-        echo -n "<script>" > "$tmp"
-        cat "$1" >> "$tmp"
-        echo -n "</script>" >> "$tmp"
-        mv "$tmp" "$1"
+        { echo -n "<script>"; cat "$file"; echo -n "</script>"; } > "$tmp"
+        mv "$tmp" "$file"
     else
-        sed_inplace 's|<script>||g; s|</script>||g' "$1"
+        sed_inplace 's|<script>||g; s|</script>||g' "$file"
     fi
 }
 
-function add_ini_variables {
+###############################################################################
+# @fn          add_ini_variables
+# @brief       Replaces {KEY} in file with -DKEY=VALUE from platformio.ini.
+# @param[in]   $1  File path.
+###############################################################################
+add_ini_variables() {
+    local file="$1"
+    local tmp
     tmp=$(mktemp)
-    grep '^[[:space:]]*-D' platformio.ini | while read -r line; do
+    grep '^[[:space:]]*-D' "$DIR/../platformio.ini" | while read -r line; do
         if [[ "$line" =~ -D([A-Za-z0-9_]+)=(.+) ]]; then
-            key="${BASH_REMATCH[1]}"
-            raw="${BASH_REMATCH[2]}"
+            local key="${BASH_REMATCH[1]}"
+            local raw="${BASH_REMATCH[2]}"
             raw="${raw//\\\"/}"
             raw="${raw//\"/}"
+            local raw_escaped
             raw_escaped=$(printf '%s' "$raw" | sed -e 's/[\/&|]/\\&/g')
             printf "%s\t%s\n" "$key" "$raw_escaped"
         fi
     done > "$tmp.kv"
-    cp "$1" "$tmp.out"
+    cp "$file" "$tmp.out"
     while IFS=$'\t' read -r key value; do
         sed_inplace "s|{$key}|$value|g" "$tmp.out"
     done < "$tmp.kv"
-    mv "$tmp.out" "$1"
+    mv "$tmp.out" "$file"
     rm -f "$tmp.kv"
 }
 
-function compile_file {
-    output="$DIR/../data/$(basename "$1")"
-    if [[ "$1" == *.js ]]; then
-        add_script_tag "$1" true
+###############################################################################
+# @fn          compile_file
+# @brief       Minifies and processes a web file for upload.
+# @param[in]   $1  Source file path.
+###############################################################################
+compile_file() {
+    local src="$1"
+    local output="$DIR/../data/$(basename "$src")"
+    if [[ "$src" == *.js ]]; then
+        add_script_tag "$src" true
     fi
     html-minifier \
         --collapse-whitespace \
@@ -102,51 +163,62 @@ function compile_file {
         --use-short-doctype \
         --minify-css true \
         --minify-js true \
-        "$1" -o "$output"
-    if [[ "$1" == *.js ]]; then
-        add_script_tag "$1" false
+        "$src" -o "$output"
+    if [[ "$src" == *.js ]]; then
+        add_script_tag "$src" false
         add_script_tag "$output" false
     fi
     add_ini_variables "$output"
-    echo "> Compiled: $(check_size "$1") → $(check_size "$output"): $(basename "$1")"
+    echo "> Compiled: $(check_size "$src") → $(check_size "$output"): $(basename "$src")"
 }
 
+###############################################################################
+# @fn          Argument Parsing
+# @brief       Parses and executes command-line arguments.
+###############################################################################
 for arg in "$@"; do
     case "$arg" in
         -fc|--filecompile)
-            check_ini
-            echo
-            for item in "$DIR/../web"/*; do
-                compile_file "$item" &
-            done
-            wait
-            continue
+            if [ "$BFC" = false ]; then
+                BFC=true
+                check_ini
+                echo
+                for item in "$DIR/../web"/*; do
+                    compile_file "$item" &
+                done
+                wait
+            fi
             ;;
         -fs|--filesystem)
             if [ "$BFS" = false ]; then
-                check_ini
                 BFS=true
+                check_ini
                 echo
-                $PIO run --target buildfs --environment esp32dev
+                "$PIO" run --target buildfs --environment esp32dev
                 if check_usb; then
                     echo
-                    $PIO run --target uploadfs --environment esp32dev
+                    "$PIO" run --target uploadfs --environment esp32dev
                 fi
             fi
-            continue
             ;;
         -fw|--firmware)
             if [ "$BFW" = false ]; then
-                check_ini
                 BFW=true
+                check_ini
                 echo
-                $PIO run --environment esp32dev
+                "$PIO" run --environment esp32dev
                 if check_usb; then
                     echo
-                    $PIO run --target upload --environment esp32dev
+                    "$PIO" run --target upload --environment esp32dev
                 fi
             fi
-            continue
+            ;;
+        -a|--all)
+            if [ "$BAL" = false ]; then
+                BAL=true
+                "$DIR/$(basename "$0")" -fc -fs -fw
+            fi
+            exit 0
             ;;
         -h|--help)
             echo

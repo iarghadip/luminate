@@ -163,10 +163,11 @@ void updateLED(
                 int ss = sceneTime.substring(6, 8).toInt();
                 int secondsSince00 = hh * 3600 + mm * 60 + ss;
                 int secondsSince06;
-                if (secondsSince00 >= _mcu.brightnessCycle * 3600) {
-                    secondsSince06 = secondsSince00 - _mcu.brightnessCycle * 3600;
+                int startHour = _mcu.brightnessCycle * 3600;
+                if (secondsSince00 >= startHour) {
+                    secondsSince06 = secondsSince00 - startHour;
                 } else {
-                    secondsSince06 = secondsSince00 + (24 * 3600) - _mcu.brightnessCycle * 3600;
+                    secondsSince06 = secondsSince00 + (24 * 3600) - startHour;
                 }
                 float percent = (secondsSince06 * 100.0) / (24 * 60 * 60);
                 if (percent < 0) percent = 0;

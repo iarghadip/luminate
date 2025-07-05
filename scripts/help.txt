@@ -4,6 +4,7 @@ Options:
   -fc, --filecompile   Preprocess and minify files in the web directory only.
   -fs, --filesystem    Build and upload the filesystem image (SPIFFS/LittleFS).
   -fw, --firmware      Build and upload the firmware (C++ program).
+  -a,  --all           Run all steps: preprocess/minify web files, build/upload filesystem, and build/upload firmware.
   -h,  --help          Display this help message and exit.
 
 Description:
@@ -13,6 +14,9 @@ Description:
   and replacing template variables from platformio.ini.
 
 Examples:
+  ./build.sh -a
+      Run all steps: preprocess/minify web files, build/upload filesystem, and build/upload firmware.
+
   ./build.sh -fw
       Build and upload firmware only.
 
