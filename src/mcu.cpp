@@ -14,6 +14,19 @@ void MCU::begin() {
     _updateConnection();
 }
 
+void MCU::log(
+    String message,
+    bool success
+) {
+    if (DEBUG_MODE_ENABLED) {
+        Serial.println(
+            (success ? "" : "\033[31m") + getTime() + " @ " + (
+                success ? "Debug" : "Error"
+            ) + " -> " + message + (success ? "" : "\033[0m")
+        );
+    }
+}
+
 void MCU::assign(
     int cpuCore,
     TaskFunction_t function,
@@ -53,19 +66,6 @@ void MCU::delay(
 ) {
     vTaskDelay(milliseconds / portTICK_PERIOD_MS);
     if (onExecute) onExecute();
-}
-
-void MCU::log(
-    String message,
-    bool success
-) {
-    if (DEBUG_MODE_ENABLED) {
-        Serial.println(
-            (success ? "" : "\033[31m") + getTime() + " @ " + (
-                success ? "Debug" : "Error"
-            ) + " -> " + message + (success ? "" : "\033[0m")
-        );
-    }
 }
 
 int MCU::setTime() {
