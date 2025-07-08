@@ -117,6 +117,15 @@ void loop() {
     });
 }
 
+/**
+ * @brief Periodically updates the RTC module with time from the internet.
+ * 
+ * This FreeRTOS task repeatedly makes HTTP requests to a configured time server.
+ * If the response is valid, it calibrates the RTC with the updated datetime and day.
+ * If the request fails, the function waits for a fallback interval before retrying.
+ * 
+ * @param arguments Unused (standard for FreeRTOS task signatures).
+ */
 void updateRTC(
     void* arguments
 ) {
@@ -127,6 +136,21 @@ void updateRTC(
     }
 }
 
+/**
+ * @brief Task function to handle changes in WiFi connection status with LED feedback.
+ * 
+ * This function runs indefinitely in a loop, using `_mcu.delay()` to periodically
+ * check the WiFi connection status. If connected to WiFi, it turns on the WiFi LED,
+ * logs the connection, and deletes the task. If not connected, it blinks the WiFi LED
+ * at a regular interval defined by `WIFI_LED_BLINK_INTERVAL`.
+ *
+ * @param arguments Pointer to optional task parameters (unused).
+ *
+ * @note This function is designed to run as a FreeRTOS task.
+ * 
+ * @see WIFI_LED_BLINK_INTERVAL
+ * @see PIN_LED_WSL
+ */
 void updateWSL(
     void* arguments
 ) {
@@ -148,6 +172,20 @@ void updateWSL(
     }
 }
 
+/**
+ * @brief FreeRTOS task that updates LED illumination based on time and brightness.
+ * 
+ * This task runs indefinitely, waking every second to:
+ * - Read the current time from the RTC.
+ * - Calculate a percentage value representing the time elapsed since 6:00 AM.
+ * - Read the ambient brightness level from the DLS sensor.
+ * - Compute the intensity values for cool and warm LEDs proportionally to the time and brightness.
+ * - Update the LED module to render the calculated lumination.
+ * 
+ * The function ensures the LED colors smoothly transition throughout the day based on the time.
+ * 
+ * @param arguments Unused parameter required for FreeRTOS task signature.
+ */
 void updateLED(
     void* arguments
 ) {

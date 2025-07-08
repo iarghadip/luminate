@@ -1,7 +1,17 @@
 #include <mcu.h>
 
+/**
+ * @brief Constructs an MCU object.
+ * 
+ * Initializes internal state and components.
+ */
 MCU::MCU() {}
 
+/**
+ * @brief Initializes system components.
+ * 
+ * Performs setup for peripherals, storage, and network subsystems.
+ */
 void MCU::begin() {
     Serial.begin(DEBUG_FREQUENCY);
     Serial.println();
@@ -14,6 +24,12 @@ void MCU::begin() {
     _updateConnection();
 }
 
+/**
+ * @brief Logs a message with optional success indication.
+ * 
+ * @param message The message to log.
+ * @param success Flag to indicate if this log entry is a success (default: true).
+ */
 void MCU::log(
     String message,
     bool success
@@ -27,6 +43,13 @@ void MCU::log(
     }
 }
 
+/**
+ * @brief Creates and pins a FreeRTOS task to a specified CPU core.
+ * 
+ * @param cpuCore CPU core index (0 or 1).
+ * @param function Task function (must match FreeRTOS `TaskFunction_t` signature).
+ * @param arguments Optional pointer to arguments passed to the task.
+ */
 void MCU::assign(
     int cpuCore,
     TaskFunction_t function,
@@ -45,6 +68,11 @@ void MCU::assign(
     log("MCU::assign(): cpuCore: " + String(cpuCore));
 }
 
+/**
+ * @brief Terminates the current task or restarts the system.
+ * 
+ * @param system If true, the MCU will restart; if false, only the current task is deleted.
+ */
 void MCU::kill(
     bool system
 ) {
@@ -60,6 +88,15 @@ void MCU::kill(
     }
 }
 
+/**
+ * @brief Delays task execution for a specified time and then optionally executes a callback.
+ *
+ * Suspends the current FreeRTOS task for at least the given number of milliseconds.
+ * If a callback is provided, it will be executed after the delay.
+ *
+ * @param milliseconds Duration to delay in milliseconds.
+ * @param onExecute Optional callback to run after the delay.
+ */
 void MCU::delay(
     uint32_t milliseconds,
     std::function<void()> onExecute
@@ -68,6 +105,15 @@ void MCU::delay(
     if (onExecute) onExecute();
 }
 
+/**
+ * @brief Synchronizes the ESP32 internal clock with NTP servers.
+ *
+ * Connects to NTP servers (e.g., "pool.ntp.org") to update the system time.
+ * Requires an active Wi-Fi connection. Returns a time interval for the next update,
+ * depending on whether synchronization succeeded.
+ *
+ * @return TIME_UPDATE_INTERVAL on success, otherwise (_standardRequestIntervalFactor * HTTP_REQUEST_INTERVAL).
+ */
 int MCU::setTime() {
     log("MCU::setTime(): Updating clock time...");
     configTime(19800, 0, "pool.ntp.org", "time.nist.gov");
@@ -83,6 +129,20 @@ int MCU::setTime() {
     return TIME_UPDATE_INTERVAL;
 }
 
+/**
+ * @brief Retrieves the current date and/or time as a formatted string.
+ * 
+ * Returns the current time from the ESP32's internal RTC, formatted based on the selected mode.
+ * Supported formats include full date and time, date only, or time only.
+ * 
+ * Format:
+ * - DATE_TIME: "DD/MM/YYYY HH:MM:SS"
+ * - DATE_ONLY: "DD/MM/YYYY"
+ * - TIME_ONLY: "HH:MM:SS"
+ * 
+ * @param format Display format (DATE_TIME, DATE_ONLY, or TIME_ONLY).
+ * @return A formatted string, or "NaN" if the time is not available.
+ */
 String MCU::getTime(
     Format format
 ) {
@@ -110,6 +170,11 @@ String MCU::getTime(
     return buffer;
 }
 
+/**
+ * @brief Adjusts the internal retry interval factor.
+ * 
+ * @param decrease If true, decrease the factor; otherwise, increase it.
+ */
 void MCU::_setStandardRequestIntervalFactor(
     bool decrease
 ) {
@@ -128,6 +193,21 @@ void MCU::_setStandardRequestIntervalFactor(
     log("MCU::_setStandardRequestInterval(): decrease: " + _sBool(decrease));
 }
 
+/**
+ * @brief Updates the MCU's WiFi connection based on stored preferences.
+ *
+ * If setup has been completed and WiFi credentials are available in preferences,
+ * this function attempts to connect to the specified WiFi network. If credentials
+ * are missing, it starts the setup interface server to allow the user to provide
+ * the necessary information.
+ *
+ * - Connects to WiFi using stored SSID and password if setup is complete.
+ * - If setup is incomplete, starts a captive portal and HTTP server for user configuration.
+ * - Continuously processes DNS and HTTP server requests during setup mode.
+ *
+ * @note Assumes that the preferences instance is initialized and that
+ *       logging, WiFi, and server methods are available.
+ */
 void MCU::_updateConnection() {
     if (preferences.getBool(KEY_SETUP_COMPLETED)) {
         log("MCU::_updateConnection(): WiFi will be connected to \"" + preferences.getString(KEY_WIFI_SSID) + "\" network.");
@@ -151,6 +231,20 @@ void MCU::_updateConnection() {
     }
 }
 
+/**
+ * @brief Updates MCU settings from persistent preferences.
+ *
+ * Reads stored values from the preferences storage to update
+ * the brightness cycle hour, brightness inheritance flag,
+ * and minimum brightness value if setup has been completed.
+ *
+ * - Updates `brightnessCycle` with the stored cycle start hour.
+ * - If brightness inheritance is enabled, updates `isBrightnessInherit`
+ *   and `brightnessMinimum` from preferences.
+ *
+ * @note This function assumes that the preferences instance
+ *       has been properly initialized.
+ */
 void MCU::_updatePreferences() {
     if (preferences.getBool(KEY_SETUP_COMPLETED)) {
         brightnessCycle = preferences.getInt(KEY_BRIGHTNESS_CYCLE);
@@ -160,6 +254,11 @@ void MCU::_updatePreferences() {
     }
 }
 
+/**
+ * @brief Builds a unique Wi-Fi hotspot name using the device's MAC address.
+ * 
+ * @return Unique SSID string.
+ */
 String MCU::_getSetupHotspotName() {
     uint64_t mac = ESP.getEfuseMac();
     String suffix = String(mac & 0xFFFFFF, HEX);
@@ -170,6 +269,12 @@ String MCU::_getSetupHotspotName() {
     return String(FIRMWARE_NAME) + "_" + suffix;
 }
 
+ /**
+ * @brief Opens a file from SPIFFS and calls onLoad with the file and its MIME type.
+ * 
+ * @param path The path to the file.
+ * @param onLoad Callback function with the opened file and its MIME type.
+ */
 void MCU::_getFile(
     String path,
     std::function<void(File file, String mime)> onLoad
@@ -191,6 +296,13 @@ void MCU::_getFile(
     }
 }
 
+/**
+ * @brief Generates a JSON response with success flag and optional message.
+ * 
+ * @param success Result status.
+ * @param message Optional message to include.
+ * @return JSON-formatted response string.
+ */
 String MCU::_getJSON(
     bool success,
     String message
@@ -205,6 +317,11 @@ String MCU::_getJSON(
     return response;
 }
 
+/**
+ * @brief Starts the setup web server in Access Point mode.
+ * 
+ * Initializes AP + DNS + captive portal and handles user input for Wi-Fi setup.
+ */
 void MCU::_startSetupInterfaceServer() {
     IPAddress local(1, 1, 1, 1);
     IPAddress gateway(1, 1, 1, 1);

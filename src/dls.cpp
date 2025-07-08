@@ -1,7 +1,20 @@
 #include <dls.h>
 
+/**
+ * @brief Constructs a DLS object.
+ * 
+ * Prepares the instance for initialization and use with a BH1750 sensor.
+ */
 DLS::DLS() {}
  
+/**
+ * @brief Initializes the BH1750 digital light sensor.
+ * 
+ * Sets up I2C communication using the provided MCU instance and 
+ * configures the sensor in continuous high-resolution mode.
+ * 
+ * @param mcu Pointer to the MCU instance handling I2C communication.
+ */
 void DLS::begin(
     MCU* mcu
 ) {
@@ -14,6 +27,16 @@ void DLS::begin(
     _isConnected();
 }
 
+/**
+ * @brief Reads the current ambient brightness level from the sensor.
+ * 
+ * Converts the lux value to a percentage (relative to 100 lux). The result is 
+ * constrained to a minimum threshold to ensure the brightness doesn't fall below 
+ * a defined floor (useful for dimming applications).
+ * 
+ * @param minimumBrightness Minimum allowed brightness percentage (e.g., 5.0).
+ * @return Brightness as a percentage (from minimumBrightness up to 100.0).
+ */
 float DLS::read(
     float minimumBrightness
 ) {
@@ -37,6 +60,14 @@ float DLS::read(
     return _oldBrightness;
 }
 
+/**
+ * @brief Registers a callback function for brightness change events.
+ * 
+ * The provided function is invoked only when a change in brightness 
+ * is detected compared to the previous value.
+ * 
+ * @param onChange Callback receiving the updated brightness percentage.
+ */
 void DLS::onBrightnessChange(
     std::function<void(float)> onChange
 ) {
@@ -48,6 +79,16 @@ void DLS::onBrightnessChange(
     }
 }
 
+/**
+ * @brief Checks whether the BH1750 sensor is connected on the I2C bus.
+ * 
+ * Sends an I2C transmission to the BH1750's address (0x23) to confirm device presence.
+ * 
+ * @note No data is read or written beyond the address check.
+ * 
+ * @return true if the sensor responds to the I2C address.
+ * @return false if the device is not connected or not responding.
+ */
 bool DLS::_isConnected() {
     Wire.beginTransmission(0x23);
     if (Wire.endTransmission() != 0) {
@@ -57,6 +98,18 @@ bool DLS::_isConnected() {
     return true;
 }
 
+/**
+ * @brief Sends a command or register address to the DLS light sensor over I²C.
+ *
+ * Initiates an I²C transmission to the DLS sensor (typically at address 0x23),
+ * writes a single byte (such as a register address or control command), and
+ * ends the transmission with a stop condition (no repeated start).
+ *
+ * This method is commonly used to configure the sensor or prepare it for data reading.
+ *
+ * @param command The command or register address to send to the DLS sensor.
+ * @return true if the sensor acknowledged the transmission; false if the transmission failed.
+ */
 bool DLS::_sendCommand(
     uint8_t command
 ) {
