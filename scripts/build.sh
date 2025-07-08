@@ -26,7 +26,7 @@ BFS=false
 BFW=false
 
 ENV="platformio.ini"
-PIO="$HOME/.platformio/penv/bin/platformio"
+PIO="platformio"
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 ###############################################################################
