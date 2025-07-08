@@ -117,7 +117,6 @@ for arg in "$@"; do
                     "$PIO" run --target upload --environment esp32dev
                 fi
             fi
-            exit 0
             ;;
         -a|--all)
             if [ "$BAL" = false ]; then
@@ -135,6 +134,7 @@ for arg in "$@"; do
                 if check_usb; then
                     echo
                     "$PIO" device monitor
+                    exit 0
                 else
                     print_error_and_exit "No devices detected." \
                         "Please connect a device and try again."

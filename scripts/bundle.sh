@@ -1,39 +1,38 @@
 #!/bin/bash
 
 ###############################################################################
-# @file        bundle.sh
-# @brief       Minifies and preprocesses HTML, CSS, and JS files for ESP32 web projects.
-# @details
-#   This script compresses (minifies) HTML, CSS, and JS files for use with ESP32
-#   projects. It also performs preprocessing: if environment variables are referenced
-#   in the files (e.g., {KEY}), they are replaced with values from platformio.ini.
-#   The script is designed for use with PlatformIO-based ESP32 deployments.
+# bundle.sh - Minifies and preprocesses HTML, CSS, and JS files for ESP32.
 #
-# @author      iarghadip
-# @date        2025-07-05
-# @version     2.0
+# Compresses (minifies) HTML, CSS, and JS files for ESP32 projects.
+# Replaces {KEY} placeholders in files with values from platformio.ini.
+# Intended for use with PlatformIO-based ESP32 deployments.
+#
+# Author: iarghadip
+# Date:   2025-07-05
+# Version: 2.0
 ###############################################################################
 
 OUT="$2/../data/$(basename "$1")"
 
 ###############################################################################
-# @fn          check_size
-# @brief       Prints the human-readable size of a file.
-# @param[in]   $1  Path to the file whose size should be printed.
-# @return      Prints file size in human-readable format (e.g., 4.5K).
+# Prints the human-readable size of a file.
+# Arguments:
+#   $1 - Path to the file.
+# Outputs:
+#   File size (e.g., 4.5K) to stdout.
 ###############################################################################
-check_size() {
+check_len() {
     ls -lh -- "$1" | awk '{print $5}'
 }
 
 ###############################################################################
-# @fn          sed_inplace
-# @brief       Performs a cross-platform in-place sed operation.
-# @param[in]   $@  Arguments for sed.
-# @details
-#   Uses the correct in-place syntax for BSD/macOS and GNU/Linux sed.
+# Performs a cross-platform in-place sed operation.
+# Arguments:
+#   All arguments are passed to sed.
+# Notes:
+#   Uses correct in-place syntax for BSD/macOS and GNU/Linux.
 ###############################################################################
-sed_inplace() {
+check_sed() {
     if [[ "$(uname)" == "Darwin" ]]; then
         sed -i '' "$@"
     else
@@ -42,38 +41,37 @@ sed_inplace() {
 }
 
 ###############################################################################
-# @fn          add_script_tag
-# @brief       Adds or removes <script> tags around JS file content.
-# @param[in]   $1  File path to process.
-# @param[in]   $2  "true" to add tags, "false" to remove tags.
-# @details
-#   If $2 is true, wraps the file content in <script>...</script>.
-#   If $2 is false, removes all <script> and </script> tags from the file.
+# Adds or removes <script> tags around JS file content.
+# Arguments:
+#   $1 - File path.
+#   $2 - "true" to add tags, "false" to remove tags.
+# Behavior:
+#   If $2 is true, wraps file content in <script>...</script>.
+#   If $2 is false, removes all <script> and </script> tags.
 ###############################################################################
-add_script_tag() {
+check_tag() {
     local file="$1"
     local add="$2"
     if [ "$add" = true ]; then
-        add_script_tag "$file" false
+        check_tag "$file" false
         local tmp
         tmp=$(mktemp)
         { echo -n "<script>"; cat "$file"; echo -n "</script>"; } > "$tmp"
         mv "$tmp" "$file"
     else
-        sed_inplace 's|<script>||g; s|</script>||g' "$file"
+        check_sed 's|<script>||g; s|</script>||g' "$file"
     fi
 }
 
 ###############################################################################
-# @fn          add_ini_variables
-# @brief       Replaces {KEY} placeholders with values from platformio.ini.
-# @param[in]   $1  File path to process.
-# @param[in]   $2  Directory path to locate platformio.ini (typically $DIR).
-# @details
-#   Looks for -DKEY=VALUE definitions in platformio.ini and replaces all
-#   {KEY} placeholders in the file with the corresponding VALUE.
+# Replaces {KEY} placeholders with values from platformio.ini.
+# Arguments:
+#   $1 - File path.
+#   $2 - Directory containing platformio.ini.
+# Behavior:
+#   Finds -DKEY=VALUE definitions in ini and replaces {KEY} in the file.
 ###############################################################################
-add_ini_variables() {
+check_ini() {
     local file="$1"
     local dir="$2"
     local tmp
@@ -91,25 +89,25 @@ add_ini_variables() {
     done > "$tmp.kv"
     cp "$file" "$tmp.out"
     while IFS=$'\t' read -r key value; do
-        sed_inplace "s|{$key}|$value|g" "$tmp.out"
+        check_sed "s|{$key}|$value|g" "$tmp.out"
     done < "$tmp.kv"
     mv "$tmp.out" "$file"
     rm -f "$tmp.kv"
 }
 
 ###############################################################################
-# @fn          compile_file
-# @brief       Minifies and preprocesses a web file for ESP32 upload.
-# @param[in]   $1  Source file path.
-# @param[in]   $2  Directory path (typically $DIR).
-# @details
-#   Minifies HTML, CSS, or JS files using html-minifier. For JS files,
-#   temporarily wraps in <script> tags for minification. After minification,
-#   replaces template variables using add_ini_variables.
+# Minifies and preprocesses a web file for ESP32 upload.
+# Arguments:
+#   $1 - Source file path.
+#   $2 - Directory path.
+# Behavior:
+#   Minifies HTML, CSS, or JS files using html-minifier.
+#   For JS, temporarily wraps in <script> tags.
+#   After minification, replaces template variables using check_ini.
 ###############################################################################
 
 if [[ "$1" == *.js ]]; then
-    add_script_tag "$1" true
+    check_tag "$1" true
 fi
 
 html-minifier \
@@ -125,10 +123,10 @@ html-minifier \
     "$1" -o "$OUT"
 
 if [[ "$1" == *.js ]]; then
-    add_script_tag "$1" false
-    add_script_tag "$OUT" false
+    check_tag "$1" false
+    check_tag "$OUT" false
 fi
 
-add_ini_variables "$OUT" "$2"
+check_ini "$OUT" "$2"
 
-echo "> Compiled: $(check_size "$1") → $(check_size "$OUT"): $(basename "$1")"
+echo "> Compiled: $(check_len "$1") → $(check_len "$OUT"): $(basename "$1")"
