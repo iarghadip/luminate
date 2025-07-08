@@ -8,7 +8,7 @@
 # Intended for use with PlatformIO-based ESP32 deployments.
 #
 # Author: iarghadip
-# Date:   2025-07-05
+# Date:   2025-07-08
 # Version: 2.0
 ###############################################################################
 
