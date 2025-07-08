@@ -9,16 +9,9 @@ void MCU::begin() {
     if(!SPIFFS.begin(true)) {
         log("MCU::begin(): Failed to start SPIFS!", false);
     }
-    pinMode(PIN_LED_WSL, OUTPUT);
     preferences.begin(FIRMWARE_NAME, false);
     _updatePreferences();
     _updateConnection();
-}
-
-void MCU::setWSL(
-    uint8_t value
-) {
-    digitalWrite(PIN_LED_WSL, value);
 }
 
 void MCU::assign(

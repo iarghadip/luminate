@@ -63,15 +63,6 @@ class MCU {
         );
 
         /**
-         * @brief Sets the Wi-Fi status LED pin to HIGH or LOW.
-         * 
-         * @param value Digital output value (`HIGH` or `LOW`).
-         */
-        void setWSL(
-            uint8_t value
-        );
-
-        /**
          * @brief Creates and pins a FreeRTOS task to a specified CPU core.
          * 
          * @param cpuCore CPU core index (0 or 1).

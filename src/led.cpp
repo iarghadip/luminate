@@ -7,6 +7,7 @@ void LED::begin(
 ) {
     _mcu = mcu;
     _mcu->log("LED::begin(): Initializing LED...");
+    pinMode(PIN_LED_WSL, OUTPUT);
     pinMode(PIN_LED_COOL, OUTPUT);
     pinMode(PIN_LED_WARM, OUTPUT);
     ledcSetup(PWM_CHANNEL_LED_COOL, PWM_FREQUENCY, PWM_RESOLUTION_BITS);
@@ -14,6 +15,12 @@ void LED::begin(
     ledcAttachPin(PIN_LED_COOL, PWM_CHANNEL_LED_COOL);
     ledcAttachPin(PIN_LED_WARM, PWM_CHANNEL_LED_WARM);
     renderLumination(0.0f, 0.0f);
+}
+
+void LED::toggleWSL(
+    uint8_t value
+) {
+    digitalWrite(PIN_LED_WSL, value);
 }
 
 void LED::renderLumination(

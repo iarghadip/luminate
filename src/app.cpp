@@ -96,12 +96,12 @@ void loop() {
             });
             _btn.onSinglePress([]() {
                 _mcu.isUserInterrupt = true;
-                _mcu.setWSL(LOW);
+                _led.toggleWSL(LOW);
                 _mcu.kill(true);
             });
             _btn.onLongPress([]() {
                 _mcu.isUserInterrupt = true;
-                _mcu.setWSL(LOW);
+                _led.toggleWSL(LOW);
                 _mcu.preferences.clear();
                 _mcu.preferences.end();
                 _mcu.log("loop(): _mcu.delay(): _btn.onLongPress(): User preferences cleared.");
@@ -135,14 +135,14 @@ void updateWSL(
         _mcu.delay(GENERAL_MIO_INTERVAL, []() {
             if (WiFi.status() == WL_CONNECTED) {
                 _mcu.log("updateWSL(): _mcu.delay(): Connected to WiFi.");
-                _mcu.setWSL(HIGH);
+                _led.toggleWSL(HIGH);
                 _mcu.kill();
             } else if (_mcu.isUserInterrupt) {
                 _mcu.log("updateWSL(): _mcu.delay(): User interrupted.");
-                _mcu.setWSL(LOW);
+                _led.toggleWSL(LOW);
                 _mcu.kill();
             } else {
-                _mcu.setWSL((((millis() / GENERAL_MIO_INTERVAL) % 2) == 0) ? HIGH : LOW);
+                _led.toggleWSL((((millis() / GENERAL_MIO_INTERVAL) % 2) == 0) ? HIGH : LOW);
             }
         });
     }

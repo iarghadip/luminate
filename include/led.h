@@ -33,6 +33,15 @@ class LED {
         );
 
         /**
+         * @brief Sets the Wi-Fi status LED pin to HIGH or LOW.
+         * 
+         * @param value Digital output value (`HIGH` or `LOW`).
+         */
+        void toggleWSL(
+            uint8_t value
+        );
+
+        /**
          * @brief Smoothly transitions the cool and warm LEDs to new brightness levels.
          * 
          * This function computes a series of steps between the current and target brightness
