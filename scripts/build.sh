@@ -31,24 +31,32 @@ PIO="platformio"
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 ###############################################################################
+# @fn          print_error_and_exit
+# @brief       Prints an error message and exits.
+# @param[in]   $1  Error message (brief).
+# @param[in]   $2  Additional suggestion or info.
+###############################################################################
+print_error_and_exit() {
+    echo
+    echo -e "${RED}Error:${RST} $1" >&2
+    echo "$2" >&2
+    echo
+    exit 1
+}
+
+###############################################################################
 # @fn          main
 # @brief       Main entry point: Validates input and parses arguments.
 ###############################################################################
 
 if [ ! -t 0 ]; then
-    echo
-    echo -e "${RED}Error:${RST} This script does not accept piped input." >&2
-    echo "Try '$(basename "$0") --help' for usage information." >&2
-    echo
-    exit 1
+    print_error_and_exit "This script does not accept piped input." \
+        "Try '$(basename "$0") --help' for usage information."
 fi
 
 if [ $# -eq 0 ]; then
-    echo
-    echo -e "${RED}Error:${RST} No arguments provided." >&2
-    echo "Try '$(basename "$0") --help' for usage information." >&2
-    echo
-    exit 1
+    print_error_and_exit "No arguments provided." \
+        "Try '$(basename "$0") --help' for usage information."
 fi
 
 ###############################################################################
@@ -128,11 +136,8 @@ for arg in "$@"; do
                     echo
                     "$PIO" device monitor
                 else
-                    echo
-                    echo -e "${RED}Error:${RST} No devices found." >&2
-                    echo "Please connect a device and try again." >&2
-                    echo
-                    exit 1 
+                    print_error_and_exit "No devices detected." \
+                        "Please connect a device and try again."
                 fi
             fi
             ;;
@@ -150,11 +155,8 @@ for arg in "$@"; do
             exit 0
             ;;
         *)
-            echo
-            echo -e "${RED}Error:${RST} Unknown option: $arg" >&2
-            echo "Try '$(basename "$0") --help' for more information." >&2
-            echo
-            exit 1
+            print_error_and_exit "Unknown option: $arg" \
+                "Try '$(basename "$0") --help' for more information."
             ;;
     esac
 done
