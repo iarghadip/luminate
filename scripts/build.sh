@@ -93,6 +93,10 @@ for arg in "$@"; do
                 check_ini
                 echo
                 platformio run --target buildfs --environment esp32dev
+                if check_usb; then
+                    echo
+                    platformio run --target uploadfs --environment esp32dev
+                fi
             fi
             ;;
         -fw|--firmware)

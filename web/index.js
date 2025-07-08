@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }, 2500);
         }
         messageElement.textContent = text;
+        console.log(`displayMessage: text: ${text}`);
     };
 
     /**
@@ -146,10 +147,11 @@ document.addEventListener("DOMContentLoaded", () => {
         toggleFormInputs(true);
 
         setTimeout(() => {
-            fetch("/wifi/save", {
+            fetch("/setup/save", {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: new URLSearchParams({
+                    '{KEY_SETUP_COMPLETED}': true,
                     '{KEY_WIFI_SSID}': ssid,
                     '{KEY_WIFI_PASSWORD}': password,
                     '{KEY_BRIGHTNESS_CYCLE}': cycle,
@@ -165,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else {
                     throw new Error(data.message || `Could not connect to ${ssid}!`);
                 }
-                console.log("response:", data);
+                console.log("handleSubmit: data: ", data);
             })
             .catch(error => {
                 displayMessage(error.message || "Something went wrong!");

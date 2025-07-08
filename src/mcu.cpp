@@ -336,12 +336,14 @@ void MCU::_startSetupInterfaceServer() {
     _server.onNotFound([this, name]() {
         String path = _server.uri();
         bool asset = path == "/index.js" || path == "/index.css";
+        log("_startSetupInterfaceServer(): onNotFound(): path: " + path);
         _getFile(asset ? path : "/index.html", [this](File file, String mime) {
+            log("_startSetupInterfaceServer(): onNotFound(): _getFile(): mime: " + mime);
             _server.streamFile(file, mime);
         });
     });
     _server.on("/setup/save", HTTP_POST, [this]() {
-        if (_server.hasArg(KEY_WIFI_SSID) && _server.hasArg(KEY_WIFI_PASSWORD)) {
+        if (_server.hasArg(KEY_SETUP_COMPLETED)) {
             String wSsid = _server.arg(KEY_WIFI_SSID);
             String wPassword = _server.arg(KEY_WIFI_PASSWORD);
             String bCycle = _server.arg(KEY_BRIGHTNESS_CYCLE);
