@@ -39,20 +39,6 @@ void MCU::assign(
     log("MCU::assign(): cpuCore: " + String(cpuCore));
 }
 
-void MCU::delay(
-    uint32_t milliseconds
-) {
-    vTaskDelay(milliseconds / portTICK_PERIOD_MS);
-}
-
-void MCU::delay(
-    uint32_t milliseconds,
-    std::function<void()> onExecute
-) {
-    vTaskDelay(milliseconds / portTICK_PERIOD_MS);
-    onExecute();
-}
-
 void MCU::kill(
     bool system
 ) {
@@ -68,6 +54,14 @@ void MCU::kill(
     }
 }
 
+void MCU::delay(
+    uint32_t milliseconds,
+    std::function<void()> onExecute
+) {
+    vTaskDelay(milliseconds / portTICK_PERIOD_MS);
+    if (onExecute) onExecute();
+}
+
 void MCU::log(
     String message,
     bool success
@@ -81,17 +75,19 @@ void MCU::log(
     }
 }
 
-bool MCU::setTime() {
+int MCU::setTime() {
     log("MCU::setTime(): Updating clock time...");
     configTime(19800, 0, "pool.ntp.org", "time.nist.gov");
     struct tm timeinfo;
     if (!getLocalTime(&timeinfo)) {
         log("MCU::setTime(): Failed to update clock!", false);
-        return false;
+        _setStandardRequestIntervalFactor(false);
+        return _standardRequestIntervalFactor * HTTP_REQUEST_INTERVAL;
     }
     isTimeUpdated = true;
     log("MCU::setTime(): Clock was updated.");
-    return true;
+    _setStandardRequestIntervalFactor(true);
+    return TIME_UPDATE_INTERVAL;
 }
 
 String MCU::getTime(
@@ -119,14 +115,6 @@ String MCU::getTime(
         buffer += time;
     }
     return buffer;
-}
-
-int MCU::getTimeUpdateInterval(
-    bool isSuccess
-) {
-    _setStandardRequestIntervalFactor(isSuccess);
-    if (isSuccess) return TIME_UPDATE_INTERVAL;
-    return _standardRequestIntervalFactor * HTTP_REQUEST_INTERVAL;
 }
 
 void MCU::_setStandardRequestIntervalFactor(

@@ -122,9 +122,7 @@ void updateRTC(
 ) {
     while (true) {
         _mcu.delay(
-            _mcu.getTimeUpdateInterval(
-                _mcu.setTime()
-            )
+            _mcu.setTime()
         );
     }
 }

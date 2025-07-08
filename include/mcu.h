@@ -63,16 +63,6 @@ class MCU {
         );
 
         /**
-         * @brief Returns an appropriate time interval based on the success of the last request.
-         * 
-         * @param isSuccess Whether the last operation succeeded.
-         * @return Time interval in milliseconds.
-         */
-        int getTimeUpdateInterval(
-            bool isSuccess
-        );
-
-        /**
          * @brief Sets the Wi-Fi status LED pin to HIGH or LOW.
          * 
          * @param value Digital output value (`HIGH` or `LOW`).
@@ -95,26 +85,6 @@ class MCU {
         );
 
         /**
-         * @brief Delays task execution for the specified duration.
-         * 
-         * @param milliseconds Time to delay, in milliseconds.
-         */
-        void delay(
-            uint32_t milliseconds
-        );
-
-        /**
-         * @brief Delays task execution, then runs a callback.
-         * 
-         * @param milliseconds Delay duration in milliseconds.
-         * @param onExecute Callback to execute after the delay.
-         */
-        void delay(
-            uint32_t milliseconds,
-            std::function<void()> onExecute
-        );
-
-        /**
          * @brief Terminates the current task or restarts the system.
          * 
          * @param system If true, the MCU will restart; if false, only the current task is deleted.
@@ -124,16 +94,26 @@ class MCU {
         );
 
         /**
-         * @brief Synchronizes the ESP32 internal RTC using an NTP server.
-         * 
-         * Connects to a predefined NTP server (e.g., pool.ntp.org) and sets the internal 
-         * system time using `configTime()` and `settimeofday()`. 
-         * 
-         * Requires an active Wi-Fi connection.
-         * 
-         * @return true if synchronization was successful, false on failure.
+         * @brief Delays task execution for a specified time and then optionally executes a callback.
+         *
+         * Suspends the current FreeRTOS task for at least the given number of milliseconds.
+         * If a callback is provided, it will be executed after the delay.
+         *
+         * @param milliseconds Duration to delay in milliseconds.
+         * @param onExecute Optional callback to run after the delay.
          */
-        bool setTime();
+        void delay(uint32_t milliseconds, std::function<void()> onExecute = {});
+
+        /**
+         * @brief Synchronizes the ESP32 internal clock with NTP servers.
+         *
+         * Connects to NTP servers (e.g., "pool.ntp.org") to update the system time.
+         * Requires an active Wi-Fi connection. Returns a time interval for the next update,
+         * depending on whether synchronization succeeded.
+         *
+         * @return TIME_UPDATE_INTERVAL on success, otherwise (_standardRequestIntervalFactor * HTTP_REQUEST_INTERVAL).
+         */
+        int setTime();
 
         /**
          * @brief Retrieves the current date and/or time as a formatted string.
