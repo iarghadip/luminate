@@ -20,6 +20,7 @@ BLU='\033[0;34m'
 BLD='\033[1m'
 RST='\033[0m'
 
+BDE=false
 BAL=false
 BFC=false
 BFS=false
@@ -73,106 +74,6 @@ check_usb() {
 }
 
 ###############################################################################
-# @fn          check_size
-# @brief       Prints the human-readable size of a file.
-# @param[in]   $1  File path.
-###############################################################################
-check_size() {
-    ls -lh -- "$1" | awk '{print $5}'
-}
-
-###############################################################################
-# @fn          sed_inplace
-# @brief       Cross-platform in-place sed.
-# @param[in]   $@  sed arguments.
-###############################################################################
-sed_inplace() {
-    if [[ "$(uname)" == "Darwin" ]]; then
-        sed -i '' "$@"
-    else
-        sed -i "$@"
-    fi
-}
-
-###############################################################################
-# @fn          add_script_tag
-# @brief       Wraps/unwraps JS files in <script> tags for minification.
-# @param[in]   $1  File path.
-# @param[in]   $2  true to add, false to remove tags.
-###############################################################################
-add_script_tag() {
-    local file="$1"
-    local add="$2"
-    if [ "$add" = true ]; then
-        add_script_tag "$file" false
-        local tmp
-        tmp=$(mktemp)
-        { echo -n "<script>"; cat "$file"; echo -n "</script>"; } > "$tmp"
-        mv "$tmp" "$file"
-    else
-        sed_inplace 's|<script>||g; s|</script>||g' "$file"
-    fi
-}
-
-###############################################################################
-# @fn          add_ini_variables
-# @brief       Replaces {KEY} in file with -DKEY=VALUE from platformio.ini.
-# @param[in]   $1  File path.
-###############################################################################
-add_ini_variables() {
-    local file="$1"
-    local tmp
-    tmp=$(mktemp)
-    grep '^[[:space:]]*-D' "$DIR/../platformio.ini" | while read -r line; do
-        if [[ "$line" =~ -D([A-Za-z0-9_]+)=(.+) ]]; then
-            local key="${BASH_REMATCH[1]}"
-            local raw="${BASH_REMATCH[2]}"
-            raw="${raw//\\\"/}"
-            raw="${raw//\"/}"
-            local raw_escaped
-            raw_escaped=$(printf '%s' "$raw" | sed -e 's/[\/&|]/\\&/g')
-            printf "%s\t%s\n" "$key" "$raw_escaped"
-        fi
-    done > "$tmp.kv"
-    cp "$file" "$tmp.out"
-    while IFS=$'\t' read -r key value; do
-        sed_inplace "s|{$key}|$value|g" "$tmp.out"
-    done < "$tmp.kv"
-    mv "$tmp.out" "$file"
-    rm -f "$tmp.kv"
-}
-
-###############################################################################
-# @fn          compile_file
-# @brief       Minifies and processes a web file for upload.
-# @param[in]   $1  Source file path.
-###############################################################################
-compile_file() {
-    local src="$1"
-    local output="$DIR/../data/$(basename "$src")"
-    if [[ "$src" == *.js ]]; then
-        add_script_tag "$src" true
-    fi
-    html-minifier \
-        --collapse-whitespace \
-        --remove-comments \
-        --remove-optional-tags \
-        --remove-redundant-attributes \
-        --remove-script-type-attributes \
-        --remove-tag-whitespace \
-        --use-short-doctype \
-        --minify-css true \
-        --minify-js true \
-        "$src" -o "$output"
-    if [[ "$src" == *.js ]]; then
-        add_script_tag "$src" false
-        add_script_tag "$output" false
-    fi
-    add_ini_variables "$output"
-    echo "> Compiled: $(check_size "$src") → $(check_size "$output"): $(basename "$src")"
-}
-
-###############################################################################
 # @fn          Argument Parsing
 # @brief       Parses and executes command-line arguments.
 ###############################################################################
@@ -184,7 +85,7 @@ for arg in "$@"; do
                 check_ini
                 echo
                 for item in "$DIR/../web"/*; do
-                    compile_file "$item" &
+                    "$DIR/bundle.sh" "$item" "$DIR" &
                 done
                 wait
             fi
@@ -195,10 +96,6 @@ for arg in "$@"; do
                 check_ini
                 echo
                 "$PIO" run --target buildfs --environment esp32dev
-                if check_usb; then
-                    echo
-                    "$PIO" run --target uploadfs --environment esp32dev
-                fi
             fi
             ;;
         -fw|--firmware)
@@ -212,13 +109,32 @@ for arg in "$@"; do
                     "$PIO" run --target upload --environment esp32dev
                 fi
             fi
+            exit 0
             ;;
         -a|--all)
             if [ "$BAL" = false ]; then
                 BAL=true
                 "$DIR/$(basename "$0")" -fc -fs -fw
+                if check_usb; then
+                    echo
+                    "$PIO" run --target uploadfs --environment esp32dev
+                fi
             fi
-            exit 0
+            ;;
+        -d|--debug)
+            if [ "$BDE" = false ]; then
+                BDE=true
+                if check_usb; then
+                    echo
+                    "$PIO" device monitor
+                else
+                    echo
+                    echo -e "${RED}Error:${RST} No devices found." >&2
+                    echo "Please connect a device and try again." >&2
+                    echo
+                    exit 1 
+                fi
+            fi
             ;;
         -h|--help)
             echo
