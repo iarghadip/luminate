@@ -1,3 +1,4 @@
+// Libraries from module wrappers
 #include <mcu.h>
 #include <btn.h>
 #include <dls.h>
@@ -5,6 +6,7 @@
 #include <fan.h>
 #include <led.h>
 
+// Instaces from module wrappers
 MCU _mcu;
 BTN _btn;
 DLS _dls;
