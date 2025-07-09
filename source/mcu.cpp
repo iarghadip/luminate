@@ -22,6 +22,7 @@ void MCU::begin() {
     preferences.begin(FIRMWARE_NAME, false);
     _updatePreferences();
     _updateConnection();
+    _updateTime();
 }
 
 /**
@@ -106,30 +107,6 @@ void MCU::delay(
 }
 
 /**
- * @brief Synchronizes the ESP32 internal clock with NTP servers.
- *
- * Connects to NTP servers (e.g., "pool.ntp.org") to update the system time.
- * Requires an active Wi-Fi connection. Returns a time interval for the next update,
- * depending on whether synchronization succeeded.
- *
- * @return TIME_UPDATE_INTERVAL on success, otherwise (_standardRequestIntervalFactor * HTTP_REQUEST_INTERVAL).
- */
-int MCU::setTime() {
-    log("MCU::setTime(): Updating clock time...");
-    configTime(19800, 0, "pool.ntp.org", "time.nist.gov");
-    struct tm timeinfo;
-    if (!getLocalTime(&timeinfo)) {
-        log("MCU::setTime(): Failed to update clock!", false);
-        _setStandardRequestIntervalFactor(false);
-        return _standardRequestIntervalFactor * HTTP_REQUEST_INTERVAL;
-    }
-    isTimeUpdated = true;
-    log("MCU::setTime(): Clock was updated.");
-    _setStandardRequestIntervalFactor(true);
-    return TIME_UPDATE_INTERVAL;
-}
-
-/**
  * @brief Retrieves the current date and/or time as a formatted string.
  * 
  * Returns the current time from the ESP32's internal RTC, formatted based on the selected mode.
@@ -171,26 +148,26 @@ String MCU::getTime(
 }
 
 /**
- * @brief Adjusts the internal retry interval factor.
- * 
- * @param decrease If true, decrease the factor; otherwise, increase it.
+ * @brief Updates MCU settings from persistent preferences.
+ *
+ * Reads stored values from the preferences storage to update
+ * the brightness cycle hour, brightness inheritance flag,
+ * and minimum brightness value if setup has been completed.
+ *
+ * - Updates `brightnessCycle` with the stored cycle start hour.
+ * - If brightness inheritance is enabled, updates `isBrightnessInherit`
+ *   and `brightnessMinimum` from preferences.
+ *
+ * @note This function assumes that the preferences instance
+ *       has been properly initialized.
  */
-void MCU::_setStandardRequestIntervalFactor(
-    bool decrease
-) {
-    if (decrease) {
-        if (_standardRequestIntervalFactor > 1) {
-            _standardRequestIntervalFactor--;
-            log("MCU::_setStandardRequestInterval(): Decremented standard request interval.");
-        }
-    } else {
-        if (_standardRequestIntervalFactor < 10) {
-            _standardRequestIntervalFactor++;
-            log("MCU::_setStandardRequestInterval(): Incremented standard request interval.");
-        }
+void MCU::_updatePreferences() {
+    if (preferences.getBool(KEY_SETUP_COMPLETED)) {
+        brightnessCycle = preferences.getInt(KEY_BRIGHTNESS_CYCLE);
+        brightnessMinimum = preferences.getFloat(
+            KEY_BRIGHTNESS_MINIMUM
+        );
     }
-    log("MCU::_setStandardRequestInterval(): _standardRequestIntervalFactor: " + String(_standardRequestIntervalFactor));
-    log("MCU::_setStandardRequestInterval(): decrease: " + _sBool(decrease));
 }
 
 /**
@@ -232,26 +209,27 @@ void MCU::_updateConnection() {
 }
 
 /**
- * @brief Updates MCU settings from persistent preferences.
+ * @brief Initialize and synchronize the ESP32 system time with NTP servers.
  *
- * Reads stored values from the preferences storage to update
- * the brightness cycle hour, brightness inheritance flag,
- * and minimum brightness value if setup has been completed.
+ * Configures the ESP32's internal RTC to synchronize with specified NTP servers
+ * ("pool.ntp.org" and "time.nist.gov") using the current GMT offset.
+ * After calling this function, the ESP32 will periodically auto-sync its time with the NTP servers.
  *
- * - Updates `brightnessCycle` with the stored cycle start hour.
- * - If brightness inheritance is enabled, updates `isBrightnessInherit`
- *   and `brightnessMinimum` from preferences.
+ * Requires an active Wi-Fi connection.
+ * Use getLocalTime() to retrieve the updated time from the internal RTC.
  *
- * @note This function assumes that the preferences instance
- *       has been properly initialized.
+ * @note
+ * - Manual periodic updates are not required; ESP32 will auto-sync in the background.
+ * - Call this function again only if you need to reconfigure NTP servers or after Wi-Fi reconnection.
+ *
+ * @see configTime
+ * @see getLocalTime
  */
-void MCU::_updatePreferences() {
-    if (preferences.getBool(KEY_SETUP_COMPLETED)) {
-        brightnessCycle = preferences.getInt(KEY_BRIGHTNESS_CYCLE);
-        brightnessMinimum = preferences.getFloat(
-            KEY_BRIGHTNESS_MINIMUM
-        );
-    }
+void MCU::_updateTime() {
+    log("MCU::_updateTime(): Clock time will be updated and synced hourly...");
+    configTime(19800, 0, "pool.ntp.org", "time.nist.gov");
+    struct tm timeinfo;
+    getLocalTime(&timeinfo);
 }
 
 /**

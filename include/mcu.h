@@ -32,7 +32,6 @@ class MCU {
 
         Preferences preferences; // Preferences instance for persistent key-value storage.
         bool isUserInterrupt = false; // Tracks user button interrupt state.
-        bool isTimeUpdated = false; // Indicates if clock time is up to date.
         int brightnessCycle = 6; // Preferences instance for persistent key-value storage.
         bool isBrightnessInherit; // Tracks user button interrupt state.
         float brightnessMinimum = 5.0f; // Indicates if clock time is up to date.
@@ -96,17 +95,6 @@ class MCU {
         void delay(uint32_t milliseconds, std::function<void()> onExecute = {});
 
         /**
-         * @brief Synchronizes the ESP32 internal clock with NTP servers.
-         *
-         * Connects to NTP servers (e.g., "pool.ntp.org") to update the system time.
-         * Requires an active Wi-Fi connection. Returns a time interval for the next update,
-         * depending on whether synchronization succeeded.
-         *
-         * @return TIME_UPDATE_INTERVAL on success, otherwise (_standardRequestIntervalFactor * HTTP_REQUEST_INTERVAL).
-         */
-        int setTime();
-
-        /**
          * @brief Retrieves the current date and/or time as a formatted string.
          * 
          * Returns the current time from the ESP32's internal RTC, formatted based on the selected mode.
@@ -128,7 +116,6 @@ class MCU {
         DNSServer _dns; // Internal DNS server for captive portal.
         HTTPClient _client; // HTTP client for outgoing requests.
         WebServer _server; // Web server for setup interface.
-        int _standardRequestIntervalFactor = 1; // Multiplier for retry timing logic.
 
         /**
          * @brief Converts a boolean to its string representation.
@@ -139,13 +126,20 @@ class MCU {
         #define _sBool(x) String((x) ? "true" : "false")
 
         /**
-         * @brief Adjusts the internal retry interval factor.
-         * 
-         * @param decrease If true, decrease the factor; otherwise, increase it.
+         * @brief Updates MCU settings from persistent preferences.
+         *
+         * Reads stored values from the preferences storage to update
+         * the brightness cycle hour, brightness inheritance flag,
+         * and minimum brightness value if setup has been completed.
+         *
+         * - Updates `brightnessCycle` with the stored cycle start hour.
+         * - If brightness inheritance is enabled, updates `isBrightnessInherit`
+         *   and `brightnessMinimum` from preferences.
+         *
+         * @note This function assumes that the preferences instance
+         *       has been properly initialized.
          */
-        void _setStandardRequestIntervalFactor(
-            bool decrease
-        );
+        void _updatePreferences();
 
         /**
          * @brief Updates the MCU's WiFi connection based on stored preferences.
@@ -165,20 +159,23 @@ class MCU {
         void _updateConnection();
 
         /**
-         * @brief Updates MCU settings from persistent preferences.
+         * @brief Initialize and synchronize the ESP32 system time with NTP servers.
          *
-         * Reads stored values from the preferences storage to update
-         * the brightness cycle hour, brightness inheritance flag,
-         * and minimum brightness value if setup has been completed.
+         * Configures the ESP32's internal RTC to synchronize with specified NTP servers
+         * ("pool.ntp.org" and "time.nist.gov") using the current GMT offset.
+         * After calling this function, the ESP32 will periodically auto-sync its time with the NTP servers.
          *
-         * - Updates `brightnessCycle` with the stored cycle start hour.
-         * - If brightness inheritance is enabled, updates `isBrightnessInherit`
-         *   and `brightnessMinimum` from preferences.
+         * Requires an active Wi-Fi connection.
+         * Use getLocalTime() to retrieve the updated time from the internal RTC.
          *
-         * @note This function assumes that the preferences instance
-         *       has been properly initialized.
+         * @note
+         * - Manual periodic updates are not required; ESP32 will auto-sync in the background.
+         * - Call this function again only if you need to reconfigure NTP servers or after Wi-Fi reconnection.
+         *
+         * @see configTime
+         * @see getLocalTime
          */
-        void _updatePreferences();
+        void _updateTime();
 
         /**
          * @brief Builds a unique Wi-Fi hotspot name using the device's MAC address.
