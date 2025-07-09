@@ -40,7 +40,7 @@ void MCU::log(
         Serial.println(
             (success ? "" : "\033[31m") + getTime() + " @ " + (
                 success ? "Debug" : "Error"
-            ) + " -> " + message + (success ? "" : "\033[0m")
+            ) + " → " + message + (success ? "" : "\033[0m")
         );
     }
 }
