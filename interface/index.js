@@ -198,4 +198,5 @@ document.addEventListener("DOMContentLoaded", () => {
     form.addEventListener("submit", handleSubmit);
     createNestedSquares();
     document.getElementById("screen-2").style.display = "none";
+    document.querySelector('main').classList.remove('d-none');
 });
