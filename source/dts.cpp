@@ -58,16 +58,34 @@ float DTS::read(
 
 /**
  * @brief Registers a callback to be triggered when the temperature changes.
- * 
- * Compares the current and previously recorded temperature. If different,
- * updates the cached value and invokes the provided callback.
- * 
- * @param onChange Callback function that receives the new temperature value (in degrees Celsius).
+ *
+ * This method reads the current temperature and compares it to the previously cached value.
+ * If a change in temperature is detected (i.e., the new value differs from the previous one),
+ * the cached value is updated and the provided callback function is invoked with the new temperature.
+ *
+ * @param minimumTemperature The minimum threshold for temperature measurement. Temperature values below this
+ *        threshold are ignored.
+ * @param onChange Callback function to be called when a temperature change is detected.
+ *        The function receives the new temperature value as a float (in degrees Celsius).
+ *
+ * @note The callback is only triggered if the temperature value has changed since the last invocation.
+ * @note This function logs the detected temperature change for debugging purposes.
+ *
+ * @see read(float minimumTemperature)
+ *
+ * @code
+ * // Example usage:
+ * dts.onTemperatureChange(15.0f, [](float newTemp) {
+ *     Serial.print("Temperature changed to: ");
+ *     Serial.println(newTemp);
+ * });
+ * @endcode
  */
 void DTS::onTemperatureChange(
+    float minimumTemperature,
     std::function<void(float)> onChange
 ) {
-    float currentTemperature = read();
+    float currentTemperature = read(minimumTemperature);
     if (currentTemperature != _oldTemperature) {
         _oldTemperature = currentTemperature;
         _mcu->log("DTS::onTemperatureChange(): currentTemperature: " + String(currentTemperature));

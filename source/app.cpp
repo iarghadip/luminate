@@ -96,10 +96,10 @@ void loop() {
                 _mcu.kill(true);
             });
         }
-        _dls.onBrightnessChange([](float brightness) {
+        _dls.onBrightnessChange(_mcu.brightnessMinimum, [](float brightness) {
             // Nothing to do yet
         });
-        _dts.onTemperatureChange([](float temperature) {
+        _dts.onTemperatureChange(-50.0f, [](float temperature) {
             _fan.adjust(temperature);
         });
     });

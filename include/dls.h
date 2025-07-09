@@ -42,18 +42,36 @@ class DLS {
          * @return Brightness as a percentage (from minimumBrightness up to 100.0).
          */
         float read(
-            float minimumBrightness = 0.0f
+            float minimumBrightness
         );
 
         /**
-         * @brief Registers a callback function for brightness change events.
-         * 
-         * The provided function is invoked only when a change in brightness 
-         * is detected compared to the previous value.
-         * 
-         * @param onChange Callback receiving the updated brightness percentage.
+         * @brief Registers a callback function to be invoked on brightness change events.
+         *
+         * This method monitors the current brightness level and compares it to the previously recorded value.
+         * If a change in brightness is detected (i.e., the new value differs from the previous one), the
+         * provided callback function is called with the updated brightness percentage.
+         *
+         * @param minimumBrightness The minimum threshold for brightness measurement. Brightness values below this
+         *        threshold are ignored.
+         * @param onChange Callback function to be called when a brightness change is detected. The function receives
+         *        the new brightness value as a float (percentage).
+         *
+         * @note The callback is only triggered if the brightness value has changed since the last check.
+         * @note This function logs the detected brightness change for debugging purposes.
+         *
+         * @see read(float minimumBrightness)
+         *
+         * @code
+         * // Example usage:
+         * dls.onBrightnessChange(10.0f, [](float newBrightness) {
+         *     Serial.print("Brightness changed to: ");
+         *     Serial.println(newBrightness);
+         * });
+         * @endcode
          */
         void onBrightnessChange(
+            float minimumBrightness,
             std::function<void(float)> onChange
         );
 
