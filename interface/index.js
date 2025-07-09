@@ -2,7 +2,7 @@
  * @fileoverview Manages form submission, input validation, UI updates, and nested square generation for Luminate Wi-Fi setup.
  */
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', () => {
     /** @type {?number} Timeout ID for resetting message text */
     let messageResetTimeoutId = null;
 
@@ -10,9 +10,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let isOnPreferencesScreen = false;
 
     /** @type {HTMLFormElement} Main form element */
-    const form = document.querySelector("form");
+    const form = document.querySelector('form');
     /** @type {HTMLButtonElement} Submit button element */
-    const submitButton = form.querySelector("button[type=submit]");
+    const submitButton = form.querySelector('button[type=submit]');
 
     /**
      * Displays a message and optionally resets it after a delay.
@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
      * @param {boolean} [resetAfterDelay=true] Whether to reset the message after a delay.
      */
     const displayMessage = (text, resetAfterDelay = true) => {
-        const messageElement = document.getElementById("message");
+        const messageElement = document.getElementById('message');
         if (messageResetTimeoutId !== null) {
             clearTimeout(messageResetTimeoutId);
             messageResetTimeoutId = null;
@@ -28,8 +28,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (resetAfterDelay) {
             messageResetTimeoutId = setTimeout(() => {
                 messageElement.textContent = isOnPreferencesScreen
-                    ? "What are your preferences?"
-                    : "Connect Luminate to Wi-Fi?";
+                    ? 'What are your preferences?'
+                    : 'Connect Luminate to Wi-Fi?';
                 messageResetTimeoutId = null;
             }, 2500);
         }
@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return JSON.parse(
                 response
                     .replace(/'/g, '"')
-                    .replace(/,\s*([}\]])/g, "$1")
+                    .replace(/,\s*([}\]])/g, '$1')
                     .trim()
             );
         }
@@ -62,8 +62,8 @@ document.addEventListener("DOMContentLoaded", () => {
      * @returns {boolean} Whether the inputs are valid.
      */
     const validateWiFiCredentials = (ssid, password) =>
-        typeof ssid === "string" &&
-        typeof password === "string" &&
+        typeof ssid === 'string' &&
+        typeof password === 'string' &&
         ssid.length >= 1 &&
         ssid.length <= 32 &&
         password.length >= 8 &&
@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
      * @returns {boolean} Whether the inputs are valid.
      */
     const validateBrightnessPreferences = (cycle, minimum) => {
-        if (cycle === "" || minimum === "") return false;
+        if (cycle === '' || minimum === '') return false;
         const cycleNum = Number(cycle);
         const minimumNum = Number(minimum);
         return (
@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
      * @param {boolean} disabled True to disable, false to enable.
      */
     const toggleFormInputs = (disabled) => {
-        form.querySelectorAll("input, button").forEach(el => el.disabled = disabled);
+        form.querySelectorAll('input, button').forEach(el => el.disabled = disabled);
     };
 
     /**
@@ -98,10 +98,10 @@ document.addEventListener("DOMContentLoaded", () => {
      * @returns {{ssid: string, password: string, cycle: string, minimum: string}} The input values.
      */
     const readFormInputs = () => ({
-        ssid: form.querySelector("input[name='{KEY_WIFI_SSID}']").value,
-        password: form.querySelector("input[name='{KEY_WIFI_PASSWORD}']").value,
-        cycle: form.querySelector("input[name='{KEY_BRIGHTNESS_CYCLE}']").value,
-        minimum: form.querySelector("input[name='{KEY_BRIGHTNESS_MINIMUM}']").value,
+        ssid: form.querySelector(`input[name='{KEY_WIFI_SSID}']`).value,
+        password: form.querySelector(`input[name='{KEY_WIFI_PASSWORD}']`).value,
+        cycle: form.querySelector(`input[name='{KEY_BRIGHTNESS_CYCLE}']`).value,
+        minimum: form.querySelector(`input[name='{KEY_BRIGHTNESS_MINIMUM}']`).value,
     });
 
     /**
@@ -109,10 +109,10 @@ document.addEventListener("DOMContentLoaded", () => {
      */
     const showPreferencesScreen = () => {
         isOnPreferencesScreen = true;
-        document.getElementById("message").textContent = "What are your preferences?";
-        document.getElementById("screen-1").style.display = "none";
-        document.getElementById("screen-2").style.display = "block";
-        submitButton.querySelector(".text").textContent = "Save Preferences";
+        document.getElementById('message').textContent = 'What are your preferences?';
+        document.getElementById('screen-1').classList.add('d-none');
+        document.getElementById('screen-2').classList.remove('d-none');
+        submitButton.querySelector('.text').textContent = 'Save Preferences';
     };
 
     /**
@@ -125,31 +125,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!isOnPreferencesScreen) {
             if (validateWiFiCredentials(ssid, password)) {
-                submitButton.querySelector(".text").textContent = "Saving...";
+                submitButton.querySelector('.text').textContent = 'Saving...';
                 setTimeout(showPreferencesScreen, 1000);
             } else {
-                displayMessage("WiFi credentials are invalid!");
+                displayMessage('WiFi credentials are invalid!');
             }
             return;
         }
 
         if (!validateWiFiCredentials(ssid, password)) {
-            displayMessage("WiFi credentials are invalid!");
+            displayMessage('WiFi credentials are invalid!');
             return;
         }
 
         if (!validateBrightnessPreferences(cycle, minimum)) {
-            displayMessage("Brightness values are invalid!");
+            displayMessage('Brightness values are invalid!');
             return;
         }
 
-        submitButton.querySelector(".text").textContent = "Saving...";
+        submitButton.querySelector('.text').textContent = 'Saving...';
         toggleFormInputs(true);
 
         setTimeout(() => {
-            fetch("/setup/save", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            fetch('/setup/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams({
                     '{KEY_SETUP_COMPLETED}': true,
                     '{KEY_WIFI_SSID}': ssid,
@@ -162,16 +162,18 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(responseText => {
                 const data = safeParseJSON(responseText);
                 if (data.success) {
-                    displayMessage(`Luminate is connected to ${ssid}.`);
-                    submitButton.querySelector(".text").textContent = "Completed";
+                    document.getElementById('pending').classList.add('d-none');
+                    document.getElementById('completed').classList.remove('d-none');
+                    document.getElementById('completed-message').textContent = `Luminate is connected to ${ssid}.`;
+                    submitButton.querySelector('.text').textContent = 'Completed';
                 } else {
                     throw new Error(data.message || `Could not connect to ${ssid}!`);
                 }
-                console.log("handleSubmit: data: ", data);
+                console.log('handleSubmit: data: ', data);
             })
             .catch(error => {
-                displayMessage(error.message || "Something went wrong!");
-                submitButton.querySelector(".text").textContent = `Save ${isOnPreferencesScreen ? "Preferences" : "Network"}`;
+                displayMessage(error.message || 'Something went wrong!');
+                submitButton.querySelector('.text').textContent = `Save ${isOnPreferencesScreen ? 'Preferences' : 'Network'}`;
                 toggleFormInputs(false);
             });
         }, 1000);
@@ -181,13 +183,13 @@ document.addEventListener("DOMContentLoaded", () => {
      * Generates nested square elements inside the container.
      */
     const createNestedSquares = () => {
-        let current = document.createElement("div");
-        current.className = "square black";
-        document.querySelector(".container").appendChild(current);
+        let current = document.createElement('div');
+        current.className = 'square black';
+        document.querySelector('.container').appendChild(current);
         let isBlack = false;
         for (let i = 0; i < 30; i++) {
-            const next = document.createElement("div");
-            next.className = isBlack ? "square black" : "square";
+            const next = document.createElement('div');
+            next.className = isBlack ? 'square black' : 'square';
             current.appendChild(next);
             current = next;
             isBlack = !isBlack;
@@ -195,8 +197,8 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // --- Initialization ---
-    form.addEventListener("submit", handleSubmit);
+    form.addEventListener('submit', handleSubmit);
     createNestedSquares();
-    document.getElementById("screen-2").style.display = "none";
-    document.querySelector('main').classList.remove('d-none');
+    document.getElementById('screen-2').classList.add('d-none');
+    document.getElementById('pending').classList.remove('d-none');
 });

@@ -11,14 +11,24 @@
         <noscript class="flex-center full-height">
             <div class="form">
                 <div class="control mb-2">
-                    <h1 id="message">JavaScript not found!</h1>
+                    <h1>JavaScript not found!</h1>
                 </div>
                 <div class="control mb-2">
                     To proceed with setting up your {FIRMWARE_NAME}, please use a device with JavaScript enabled...
                 </div>
             </div>
         </noscript>
-        <main class="d-none">
+        <main id="completed" class="flex-center full-height d-none">
+            <div class="form">
+                <div class="control mb-2">
+                    <h1 id="completed-message"></h1>
+                </div>
+                <div class="control mb-2">
+                    Your setup was successful, your device will connect to the network and once system time is updated LEDs will be turned on...
+                </div>
+            </div>
+        </main>
+        <main id="pending" class="d-none">
             <div class="header">
                 {FIRMWARE_VERSION}
             </div>

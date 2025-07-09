@@ -115,10 +115,6 @@ for arg in "$@"; do
             if [[ -z "${EXE[3]}" ]]; then
                 EXE[3]=true
                 "$DIR/$(basename "$0")" -fc -fs -fw
-                if check_usb; then
-                    echo
-                    platformio run --target uploadfs --environment esp32dev
-                fi
             fi
             ;;
         -d|--debug)
