@@ -81,7 +81,7 @@ for arg in "$@"; do
                 EXE[0]=true
                 check_ini
                 echo
-                for item in "$DIR/../web"/*; do
+                for item in "$DIR/../interface"/*; do
                     "$DIR/bundle.sh" "$item" "$DIR" &
                 done
                 wait
