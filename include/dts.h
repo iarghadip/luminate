@@ -42,7 +42,7 @@ class DTS {
          * @return Temperature in degrees Celsius, constrained to [minimumTemperature, 100.0].
          */
         float read(
-            float minimumTemperature = 0.0f
+            float minimumTemperature = -50.0f
         );
 
         /**
