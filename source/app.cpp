@@ -160,25 +160,27 @@ void updateLED(
 ) {
     while (true) {
         _mcu.delay(BRIGHTNESS_UPDATE_INTERVAL, []() {
-            String sceneTime = _mcu.getTime(_mcu.TIME_ONLY);
-            int sceneBrightness = _mcu.isBrightnessInherit ? _dls.read(_mcu.brightnessMinimum) : 100.0f;
-            int hh = sceneTime.substring(0, 2).toInt();
-            int mm = sceneTime.substring(3, 5).toInt();
-            int ss = sceneTime.substring(6, 8).toInt();
-            int secondsSince00 = hh * 3600 + mm * 60 + ss;
-            int secondsSince06;
-            int startHour = _mcu.brightnessCycle * 3600;
-            if (secondsSince00 >= startHour) {
-                secondsSince06 = secondsSince00 - startHour;
-            } else {
-                secondsSince06 = secondsSince00 + (24 * 3600) - startHour;
+            if (_mcu.isTimeUpdated()) {
+                String sceneTime = _mcu.getTime(_mcu.TIME_ONLY);
+                int sceneBrightness = _mcu.isBrightnessInherit ? _dls.read(_mcu.brightnessMinimum) : 100.0f;
+                int hh = sceneTime.substring(0, 2).toInt();
+                int mm = sceneTime.substring(3, 5).toInt();
+                int ss = sceneTime.substring(6, 8).toInt();
+                int secondsSince00 = hh * 3600 + mm * 60 + ss;
+                int secondsSince06;
+                int startHour = _mcu.brightnessCycle * 3600;
+                if (secondsSince00 >= startHour) {
+                    secondsSince06 = secondsSince00 - startHour;
+                } else {
+                    secondsSince06 = secondsSince00 + (24 * 3600) - startHour;
+                }
+                float percent = (secondsSince06 * 100.0) / (24 * 60 * 60);
+                if (percent < 0) percent = 0;
+                if (percent > 100) percent = 100;
+                int coolLED = ((100.0 - percent) / 100.0) * sceneBrightness;
+                int warmLED = (percent / 100.0) * sceneBrightness;
+                _led.renderLumination(coolLED, warmLED);
             }
-            float percent = (secondsSince06 * 100.0) / (24 * 60 * 60);
-            if (percent < 0) percent = 0;
-            if (percent > 100) percent = 100;
-            int coolLED = ((100.0 - percent) / 100.0) * sceneBrightness;
-            int warmLED = (percent / 100.0) * sceneBrightness;
-            _led.renderLumination(coolLED, warmLED);
         });
     }
 }
