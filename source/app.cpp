@@ -162,7 +162,6 @@ void updateLED(
         _mcu.delay(BRIGHTNESS_UPDATE_INTERVAL, []() {
             if (_mcu.isTimeUpdated()) {
                 String sceneTime = _mcu.getTime(_mcu.TIME_ONLY);
-                int sceneBrightness = _mcu.isBrightnessInherit ? _dls.read(_mcu.brightnessMinimum) : 100.0f;
                 int hh = sceneTime.substring(0, 2).toInt();
                 int mm = sceneTime.substring(3, 5).toInt();
                 int ss = sceneTime.substring(6, 8).toInt();
@@ -177,6 +176,10 @@ void updateLED(
                 float percent = (secondsSince06 * 100.0) / (24 * 60 * 60);
                 if (percent < 0) percent = 0;
                 if (percent > 100) percent = 100;
+                int sceneBrightness = 100.0f;
+                if (_mcu.isBrightnessInherit) {
+                    sceneBrightness = _dls.read(_mcu.brightnessMinimum);
+                }
                 int coolLED = ((100.0 - percent) / 100.0) * sceneBrightness;
                 int warmLED = (percent / 100.0) * sceneBrightness;
                 _led.renderLumination(coolLED, warmLED);
