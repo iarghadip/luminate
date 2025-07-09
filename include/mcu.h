@@ -34,7 +34,7 @@ class MCU {
         bool isUserInterrupt = false; // Tracks user button interrupt state.
         int brightnessCycle = 6; // Preferences instance for persistent key-value storage.
         bool isBrightnessInherit; // Tracks user button interrupt state.
-        float brightnessMinimum = 5.0f; // Indicates if clock time is up to date.
+        float brightnessMinimum = 0.0f; // Indicates if clock time is up to date.
 
         /**
          * @brief Constructs an MCU object.
