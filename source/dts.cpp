@@ -38,20 +38,20 @@ float DTS::read(
     float minimumTemperature
 ) {
     if (_isConnected()) {
-        unsigned long current = millis();
-        float temperature = _oldTemperature;
         if (_sendCommand(0x00)) {
             if (Wire.requestFrom(0x48, 2) == 2 && Wire.available() >= 2) {
                 uint8_t msb = Wire.read();
                 uint8_t lsb = Wire.read();
                 int16_t raw = ((int16_t)msb << 8) | lsb;
-                temperature = (raw >> 7) * 0.5f;
+                return constrain(
+                    (raw >> 7) * 0.5f,
+                    minimumTemperature,
+                    100.0f
+                );
             } else {
                 _mcu->log("DTS::read(): Wire response size invalid!", false);
             }
         }
-        _lastRead = current;
-        return constrain(temperature, minimumTemperature, 100.0f);
     }
     return _oldTemperature;
 }

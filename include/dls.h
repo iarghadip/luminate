@@ -77,7 +77,6 @@ class DLS {
 
     private:
         MCU* _mcu; // Pointer to the MCU instance managing sensor communication.
-        unsigned long _lastRead = 0; // Timestamp of the last brightness reading (in milliseconds).
         float _oldBrightness = 0.0f; // Previously recorded brightness percentage.
 
         /**

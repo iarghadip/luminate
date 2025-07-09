@@ -77,7 +77,6 @@ class DTS {
 
     private:
         MCU* _mcu; // Pointer to the MCU instance managing.
-        unsigned long _lastRead = 0; // Timestamp of the last temperature.
         float _oldTemperature = 0.0f; // Previously recorded temperature value.
 
         /**
