@@ -42,9 +42,6 @@ float DLS::read(
 ) {
     if (_isConnected()) {
         unsigned long current = millis();
-        if (current - _lastRead < GENERAL_MIO_INTERVAL) {
-            return _oldBrightness;
-        }
         float brightness = _oldBrightness;
         if (Wire.requestFrom((int)0x23, 2) == 2 && Wire.available() >= 2) {
             uint16_t level = Wire.read();

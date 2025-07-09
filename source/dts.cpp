@@ -39,9 +39,6 @@ float DTS::read(
 ) {
     if (_isConnected()) {
         unsigned long current = millis();
-        if (current - _lastRead < GENERAL_MIO_INTERVAL) {
-            return _oldTemperature;
-        }
         float temperature = _oldTemperature;
         if (_sendCommand(0x00)) {
             if (Wire.requestFrom(0x48, 2) == 2 && Wire.available() >= 2) {
