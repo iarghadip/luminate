@@ -16,13 +16,12 @@ void MCU::begin() {
     Serial.begin(DEBUG_FREQUENCY);
     Serial.println();
     log("MCU::begin(): Initializing MCU...");
-    if(!SPIFFS.begin(true)) {
+    if (!SPIFFS.begin(true)) {
         log("MCU::begin(): Failed to start SPIFS!", false);
     }
     preferences.begin(FIRMWARE_NAME, false);
-    if (_updatePreferences()) {
-        configTime(19800, 0, "pool.ntp.org", "time.nist.gov");
-    }
+    configTime(19800, 0, "pool.ntp.org", "time.nist.gov");
+    _updatePreferences();
     _updateConnection();
 }
 
@@ -178,34 +177,25 @@ String MCU::getTime(
 }
 
 /**
- * @brief Load and apply MCU brightness settings from persistent storage.
+ * @brief Loads and applies MCU brightness settings from persistent storage.
  *
- * This function reads stored configuration values from the preferences
- * storage and applies them to the MCU instance. It only performs the update
- * if the setup process has been marked as completed in preferences.
+ * Reads configuration values from preferences and updates the MCU instance.
+ * Only performs the update if the setup process has been completed.
  *
- * Specifically, it updates:
+ * The following settings are updated:
  * - `brightnessCycle`: The configured start hour for the brightness adjustment cycle.
- * - `brightnessMinimum`: The minimum brightness level, read from preferences.
+ * - `brightnessMinimum`: The minimum brightness level, as stored in preferences.
  *
- * @note Brightness inheritance (`isBrightnessInherit`) is not explicitly updated
- *       in this implementation, despite the description. Adjust if needed.
- *
- * @warning This function assumes that the preferences instance is properly
- *          initialized and available.
- *
- * @return true if setup was completed and preferences were successfully loaded,
- *         false if the setup is incomplete and no values were applied.
+ * @note The `isBrightnessInherit` property is not modified by this function.
+ * @warning Assumes the preferences instance is properly initialized and accessible.
  */
-bool MCU::_updatePreferences() {
+void MCU::_updatePreferences() {
     if (preferences.getBool(KEY_SETUP_COMPLETED)) {
         brightnessCycle = preferences.getInt(KEY_BRIGHTNESS_CYCLE);
         brightnessMinimum = preferences.getFloat(
             KEY_BRIGHTNESS_MINIMUM
         );
-        return true;
     }
-    return false;
 }
 
 /**
