@@ -35,7 +35,7 @@ class MCU {
         enum Format {
             DATE_TIME, // Output includes both date and time.
             DATE_ONLY, // Output includes only the date.
-            TIME_ONLY  // Output includes only the time.
+            TIME_ONLY // Output includes only the time.
         };
 
         Preferences preferences; // Preferences instance for persistent key-value storage.
