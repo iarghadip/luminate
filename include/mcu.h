@@ -33,9 +33,9 @@ class MCU {
          * @brief Enumeration for date/time formatting options.
          */
         enum Format {
-            DATE_TIME, ///< Output includes both date and time.
-            DATE_ONLY, ///< Output includes only the date.
-            TIME_ONLY  ///< Output includes only the time.
+            DATE_TIME, // Output includes both date and time.
+            DATE_ONLY, // Output includes only the date.
+            TIME_ONLY  // Output includes only the time.
         };
 
         Preferences preferences; // Preferences instance for persistent key-value storage.
