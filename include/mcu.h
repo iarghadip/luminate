@@ -100,7 +100,10 @@ class MCU {
          * @param milliseconds Duration to delay in milliseconds.
          * @param onExecute Optional callback to run after the delay.
          */
-        void delay(uint32_t milliseconds, std::function<void()> onExecute = {});
+        void delay(
+            uint32_t milliseconds,
+            std::function<void()> onExecute = {}
+        );
 
         /**
          * @brief Check if the system time has been successfully updated.
