@@ -22,19 +22,6 @@ void BTN::begin(
     _mcu->log("BTN::begin(): Initializing BTN...");
     pinMode(PIN_BUTTON_RESET, INPUT_PULLUP);
     pinMode(PIN_SWITCH_DLS, INPUT_PULLUP);
-    _wasEnabled = digitalRead(PIN_SWITCH_DLS) == LOW;
-}
-
- /**
- * @brief Returns the current enabled state of the toggle switch.
- *
- * This function returns the last known state of the toggle switch as tracked by the BTN class.
- * It reflects whether the switch is currently considered enabled (ON) or disabled (OFF).
- *
- * @return true if the toggle switch is enabled (ON), false if it is disabled (OFF).
- */
-bool BTN::isToogleEnabled() {
-    return _wasEnabled;
 }
 
 /**
@@ -54,8 +41,11 @@ void BTN::onToggle(
     std::function<void(bool status)> onToggle
 ) {
     bool isEnabled = digitalRead(PIN_SWITCH_DLS) == LOW;
-    if (isEnabled != _wasEnabled) {
+    if (!_wasInitialized || isEnabled != _wasEnabled) {
+        _wasInitialized = true;
         _wasEnabled = isEnabled;
+        _mcu->log("BTN::onToggle(): Switch was toggled.");
+        _mcu->log("BTN::onToggle(): isEnabled: " + _sBool(isEnabled));
         onToggle(isEnabled);
     }
 }

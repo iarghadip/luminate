@@ -29,16 +29,6 @@ class BTN {
         );
 
         /**
-         * @brief Returns the current enabled state of the toggle switch.
-         *
-         * This function returns the last known state of the toggle switch as tracked by the BTN class.
-         * It reflects whether the switch is currently considered enabled (ON) or disabled (OFF).
-         *
-         * @return true if the toggle switch is enabled (ON), false if it is disabled (OFF).
-         */
-        bool isToogleEnabled();
-
-        /**
          * @brief Monitors the toggle switch and invokes a callback on state change.
          *
          * This method continuously checks the state of the toggle switch connected to PIN_SWITCH_DLS.
@@ -82,7 +72,8 @@ class BTN {
         MCU* _mcu; // Pointer to the MCU instance for GPIO interaction.
         unsigned long _pressStartTime = 0; // Timestamp when the button was initially pressed.
         bool _wasPressed = false; // Internal state flag to track if the button was previously pressed.
-        bool _wasEnabled; // Tracks the previous enabled state of the switch (for edge detection).
+        bool _wasInitialized = false; // Internal flag indicating whether the button logic has been initialized.
+        bool _wasEnabled = false; // Tracks the previous enabled state of the switch (for edge detection).
 };
 
 #endif // btn_h
