@@ -22,6 +22,14 @@
 class MCU {
     public:
         /**
+         * @brief Converts a boolean to its string representation.
+         * 
+         * @param x Boolean value.
+         * @return "true" or "false".
+         */
+        #define sBool(x) String((x) ? "true" : "false")
+
+        /**
          * @brief Enumeration for date/time formatting options.
          */
         enum Format {
@@ -137,14 +145,6 @@ class MCU {
         HTTPClient _client; // HTTP client for outgoing requests.
         WebServer _server; // Web server for setup interface.
         bool _isTimeUpdated = false; // Indicates if clock time is up to date.
-
-        /**
-         * @brief Converts a boolean to its string representation.
-         * 
-         * @param x Boolean value.
-         * @return "true" or "false".
-         */
-        #define _sBool(x) String((x) ? "true" : "false")
 
         /**
          * @brief Loads and applies MCU brightness settings from persistent storage.

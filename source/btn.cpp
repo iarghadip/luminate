@@ -45,7 +45,7 @@ void BTN::onToggle(
         _wasInitialized = true;
         _wasEnabled = isEnabled;
         _mcu->log("BTN::onToggle(): Switch was toggled.");
-        _mcu->log("BTN::onToggle(): isEnabled: " + _sBool(isEnabled));
+        _mcu->log("BTN::onToggle(): isEnabled: " + sBool(isEnabled));
         onToggle(isEnabled);
     }
 }
